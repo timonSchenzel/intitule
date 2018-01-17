@@ -1,7 +1,85 @@
 module.exports = class Intitule
 {
+    makeYellow(value)
+    {
+        return this.yellow + value + this.ansiStyles.color.close;
+    }
+
+    makeBlue(value)
+    {
+        return this.blue + value + this.ansiStyles.color.close;
+    }
+
+    makeGreen(value)
+    {
+        return this.green + value + this.ansiStyles.color.close;
+    }
+
+    registerColors(colors)
+    {
+        for (let color in colors) {
+            this.registerColor(color, colors[color]);
+        }
+    }
+
+    registerColor(colorName, colorValue)
+    {
+        if (typeof colorValue == 'string') {
+            if (! colorValue.startsWith('#')) {
+                colorValue = '#' + colorValue;
+            }
+
+            this[colorName] = this.ansiStyles.color.ansi16m.hex(colorValue);
+        } else if (typeof colorValue == 'object') {
+            this[colorName] = this.ansiStyles.color.ansi256.rgb(colorValue[0], colorValue[1], colorValue[2]);
+        }
+    }
+
+    style(properties, styling = null)
+    {
+        if (typeof properties == 'object') {
+            for (let property in properties) {
+                this.styleProperty(property, properties[property]);
+            }
+        } else {
+            this.styleProperty(properties, styling);
+        }
+    }
+
+    styleProperty(property, styling)
+    {
+        if (typeof styling == 'string') {
+            styling = styling.split('.');
+        }
+
+        styling.forEach(style => {
+            if (style == 'bold') {
+                this.dumpTheme[property].open += this.ansiStyles.bold.open;
+            } else if (this[style]) {
+                this.dumpTheme[property].open += this[style];
+            } else {
+                this.dumpTheme[property].open += this.ansiStyles.color[style].open;
+            }
+        });
+
+        styling.reverse().forEach(style => {
+            if (style == 'bold') {
+                this.dumpTheme[property].close += this.ansiStyles.bold.close;
+            } else if (this[style]) {
+                this.dumpTheme[property].close += this.ansiStyles.color.close;
+            } else {
+                this.dumpTheme[property].close += this.ansiStyles.color[style].close;
+            }
+        });
+
+        console.log(this.dumpTheme[property]);
+    }
+
     constructor()
     {
+        this.addLeftMargin = true;
+        this.leftMarginSpaces = 1;
+
         this.ansiStyles = require('ansi-styles');
         this.concordance = require('concordance');
         this.highlight = require('cli-highlight').highlight;
@@ -10,8 +88,15 @@ module.exports = class Intitule
         this.chalk = require('chalk');
         this.forceColor = new this.chalk.constructor({enabled: true});
 
+        this.yellow = this.ansiStyles.color.ansi256.rgb(252, 127, 0);
+        this.blue = this.ansiStyles.color.ansi256.rgb(36, 176, 213);
+        this.green = this.ansiStyles.color.ansi256.rgb(141, 213, 102);
+
         this.dumpTheme = {
-            boolean: this.ansiStyles.yellow,
+            boolean: {
+                open: this.ansiStyles.bold.open + this.yellow,
+                close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
+            },
             circular: this.forceColor.grey('[Circular]'),
             date: {
                 invalid: this.forceColor.red('invalid'),
@@ -32,15 +117,24 @@ module.exports = class Intitule
             },
             global: this.ansiStyles.magenta,
             item: {after: this.forceColor.grey(',')},
-            list: {openBracket: this.forceColor.grey('['), closeBracket: this.forceColor.grey(']')},
+            list: {openBracket: this.makeYellow('['), closeBracket: this.makeYellow(']')},
             mapEntry: {after: this.forceColor.grey(',')},
             maxDepth: this.forceColor.grey('…'),
-            null: this.ansiStyles.yellow,
-            number: this.ansiStyles.yellow,
+            null: {
+                open: this.ansiStyles.bold.open + this.yellow,
+                close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
+            },
+            number: {
+                open: this.ansiStyles.bold.open + this.blue,
+                close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
+            },
             object: {
-                openBracket: this.forceColor.grey('{'),
-                closeBracket: this.forceColor.grey('}'),
-                ctor: this.ansiStyles.magenta,
+                openBracket: this.makeYellow('{'),
+                closeBracket: this.makeYellow('}'),
+                ctor: {
+                    open: this.blue,
+                    close: this.ansiStyles.color.close,
+                },
                 stringTag: {open: this.ansiStyles.magenta.open + '@', close: this.ansiStyles.magenta.close},
                 secondaryStringTag: {open: this.ansiStyles.grey.open + '@', close: this.ansiStyles.grey.close}
             },
@@ -83,10 +177,10 @@ module.exports = class Intitule
             },
             stats: {separator: this.forceColor.grey('---')},
             string: {
-                open: this.ansiStyles.blue.open,
-                close: this.ansiStyles.blue.close,
-                line: {open: this.forceColor.blue('\''), close: this.forceColor.blue('\'')},
-                multiline: {start: this.forceColor.blue('`'), end: this.forceColor.blue('`')},
+                open: this.ansiStyles.bold.open + this.green,
+                close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
+                line: {open: this.yellow + '\'' + this.ansiStyles.color.close, close: this.yellow + '\'' + this.ansiStyles.color.close},
+                multiline: {start: this.forceColor.green('`'), end: this.forceColor.green('`')},
                 controlPicture: this.ansiStyles.grey,
                 diff: {
                     insert: {
@@ -339,8 +433,7 @@ module.exports = class Intitule
             expected = this.highlight(expected, {language: 'html', ignoreIllegals: true, theme: this.htmlDumpTheme});
         }
 
-        return '  ' + this.concordance.diff(actual, expected, {plugins: [], theme: this.dumpTheme})
-            .split('\n').join('\n  ');
+        this.write(this.concordance.diff(actual, expected, {plugins: [], theme: this.dumpTheme}));
     }
 
     ddDiff(actual, expected)
@@ -357,10 +450,7 @@ module.exports = class Intitule
             value = value.substring(0, value.length - 2);
             value = this.highlight(value, {language: 'html', ignoreIllegals: true, theme: this.htmlDumpTheme});
 
-            console.log(
-                '  ' + value.split('\n').join('\n  ')
-            );
-
+            this.write(value);
             return;
         }
 
@@ -368,17 +458,15 @@ module.exports = class Intitule
 
         if (typeof value == 'object' && value !== null) {
             if (value.constructor == Array) {
-                formatted = this.chalk.magenta('Array ') + formatted;
+                formatted = this.blue + `array:${value.length} ` + this.ansiStyles.color.close + formatted;
             }
 
             if (value.constructor == Object) {
-                formatted = this.chalk.magenta('Object ') + formatted;
+                formatted = this.blue + `object:${Object.keys(value).length} ` + this.ansiStyles.color.close + formatted;
             }
         }
 
-        console.log(
-            '  ' + formatted.split('\n').join('\n  ')
-        );
+        this.write(formatted);
     }
 
     dd(value)
@@ -386,6 +474,29 @@ module.exports = class Intitule
         this.dump(value)
 
         process.exit(0);
+    }
+
+    write(value)
+    {
+        if (this.addLeftMargin && this.leftMarginSpaces > 0) {
+            let margin = this.createMargin();
+            value = margin + value.split('\n').join('\n' + margin);
+        }
+
+        console.log(value)
+    }
+
+    createMargin()
+    {
+        let margin = '';
+        let leftMarginSpaces = this.leftMarginSpaces;
+
+        while (leftMarginSpaces > 0) {
+            leftMarginSpaces--;
+            margin += ' ';
+        }
+
+        return margin;
     }
 
     makeGlobal()
