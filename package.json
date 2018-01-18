@@ -13,6 +13,7 @@
         "chalk": "^2.3.0",
         "cli-highlight": "^1.2.3",
         "concordance": "^3.0.0",
+        "counsel": "file:../counsel",
         "is-html": "^1.1.0",
         "prettier": "^1.10.2"
     }

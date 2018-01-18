@@ -1,6 +1,15 @@
-let intitule = new (require('../src/Intitule'));
+module.exports = class ThemeTest extends TestCase
+{
+	/** @test */
+	it_is_possible_to_specify_a_color_in_rgb_format()
+	{
+		intitule.registerColor('red', [255, 0, 0]);
 
-// intitule.registerColor('red', [255, 0, 0]);
+		dd(intitule.colors.red);
+	}
+}
+
+// 
 
 // intitule.registerColors({
 //     yellow: [252, 127, 0],
@@ -21,61 +30,36 @@ let intitule = new (require('../src/Intitule'));
 
 // intitule.theme(theme);
 
-intitule.makeGlobal();
 
-let Foo = class Foo
-{
-    constructor()
-    {
-        this.foo = 'bar';
 
-        this.bar = true;
 
-        this.baz = null;
 
-        this.buz = 1;
+// dump();
+// dump('');
+// dump(true);
+// dump(false);
+// dump(null);
+// dump(1234567890);
+// dump('foo');
+// dump([1,2,3]);
+// dump({1:1,2:2,3:3});
+// dump({foo: 'bar', bar: 'baz', 'number': 22});
+// dump(Foo);
+// dump(fooInstance);
+// dump(`
+// 	<html>
+// 	<body>
 
-        this.array = [
-            1,
-            2,
-            3
-        ];
+// 	<h2 title="I'm a header">The title attribute</h2>
 
-        this.object = {
-            foo: 'bar',
-            bar: 123,
-        }
-    }
-}
+// 	<p title="I'm a tooltip">
+// 	Mouse over this paragraph, to display the title attribute as a tooltip.
+// 	</p>
 
-let fooInstance = new Foo;
-
-dump();
-dump('');
-dump(true);
-dump(false);
-dump(null);
-dump(1234567890);
-dump('foo');
-dump([1,2,3]);
-dump({1:1,2:2,3:3});
-dump({foo: 'bar', bar: 'baz', 'number': 22});
-dump(Foo);
-dump(fooInstance);
-dump(`
-	<html>
-	<body>
-
-	<h2 title="I'm a header">The title attribute</h2>
-
-	<p title="I'm a tooltip">
-	Mouse over this paragraph, to display the title attribute as a tooltip.
-	</p>
-
-	</body>
-	</html>
-`);
-diff('foo', 'bar');
-diff('foo', 'foobar');
-diff('foobar', 'bar');
-dd('done.');
+// 	</body>
+// 	</html>
+// `);
+// diff('foo', 'bar');
+// diff('foo', 'foobar');
+// diff('foobar', 'bar');
+// dd('done.');

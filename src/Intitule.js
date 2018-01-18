@@ -57,12 +57,15 @@ module.exports = class Intitule
         }
 
         if (styling.constructor == Array) {
+            this.dumpTheme[property] = {};
             this.applyPropertyStyle(this.dumpTheme[property], styling);
         }
 
         if (styling.constructor == Object) {
             if (styling.color && styling.text) {
-                // console.log(styling);
+                this.dumpTheme[property] = this.applyPropertyStyleWithValue(styling.color, styling.text);
+                delete styling.color;
+                delete styling.text;
             }
 
             for (let subItem in styling) {
@@ -70,9 +73,20 @@ module.exports = class Intitule
                     this.dumpTheme[property][subItem] = {};
                 }
 
+                if (typeof styling[subItem] == 'string') {
+                    styling[subItem] = styling[subItem].split('.');
+                }
+
+                if (styling[subItem].constructor == Array) {
+                    this.dumpTheme[property][subItem] = {};
+                    this.applyPropertyStyle(this.dumpTheme[property][subItem], styling[subItem]);
+                }
+
                 if (styling[subItem].constructor == Object) {
                     if (styling[subItem].color && styling[subItem].text) {
-                        // console.log(styling[subItem]);
+                        this.dumpTheme[property][subItem] = this.applyPropertyStyleWithValue(styling[subItem].color, styling[subItem].text);
+                        delete styling[subItem].color;
+                        delete styling[subItem].text;
                     }
 
                     for (let subSubItem in styling[subItem]) {
