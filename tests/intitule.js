@@ -1,15 +1,14 @@
 let intitule = new (require('../src/Intitule'));
 
-intitule.registerColor('red', [255, 0, 0]);
-intitule.registerColors({
-    red: 'ff0000',
-});
+// intitule.registerColor('red', [255, 0, 0]);
 
-intitule.style('boolean', 'red.bold');
+// intitule.registerColors({
+//     yellow: [252, 127, 0],
+//     blue: [36, 176, 213],
+//     green: [141, 213, 102],
+// });
 
-intitule.style({
-    boolean: 'blue.bold'
-});
+// intitule.style('null', 'yellow.bold');
 
 // let theme = {
 //     colors: {

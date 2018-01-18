@@ -29,9 +29,9 @@ module.exports = class Intitule
                 colorValue = '#' + colorValue;
             }
 
-            this[colorName] = this.ansiStyles.color.ansi16m.hex(colorValue);
+            this['colors'][colorName] = this.ansiStyles.color.ansi16m.hex(colorValue);
         } else if (typeof colorValue == 'object') {
-            this[colorName] = this.ansiStyles.color.ansi256.rgb(colorValue[0], colorValue[1], colorValue[2]);
+            this['colors'][colorName] = this.ansiStyles.color.ansi256.rgb(colorValue[0], colorValue[1], colorValue[2]);
         }
     }
 
@@ -48,37 +48,134 @@ module.exports = class Intitule
 
     styleProperty(property, styling)
     {
+        if (! this.dumpTheme[property]) {
+            this.dumpTheme[property] = {};
+        }
+
+        if (typeof styling == 'string') {
+            styling = styling.split('.');
+        }
+
+        if (styling.constructor == Array) {
+            this.applyPropertyStyle(this.dumpTheme[property], styling);
+        }
+
+        if (styling.constructor == Object) {
+            if (styling.color && styling.text) {
+                // console.log(styling);
+            }
+
+            for (let subItem in styling) {
+                if (! this.dumpTheme[property][subItem]) {
+                    this.dumpTheme[property][subItem] = {};
+                }
+
+                if (styling[subItem].constructor == Object) {
+                    if (styling[subItem].color && styling[subItem].text) {
+                        // console.log(styling[subItem]);
+                    }
+
+                    for (let subSubItem in styling[subItem]) {
+                        if (styling[subItem][subSubItem].color && styling[subItem][subSubItem].text) {
+                            // console.log(styling[subItem][subSubItem]);
+                            this.dumpTheme[property][subItem][subSubItem] = this.applyPropertyStyleWithValue(styling[subItem][subSubItem].color, styling[subItem][subSubItem].text);
+                        }
+
+                        if (subSubItem == 'color') {
+                            this.applyPropertyStyle(this.dumpTheme[property][subItem], styling[subItem].color);
+                        } else {
+                            this.dumpTheme[property][subItem][subSubItem] = styling[subItem][subSubItem];
+                        }
+                    }
+                } else {
+                    this.applyPropertyStyle(this.dumpTheme[property][subItem], styling[subItem]);
+                }
+            }
+        }
+    }
+
+    applyPropertyStyleWithValue(styling, value)
+    {
+        let formatted = '';
+
         if (typeof styling == 'string') {
             styling = styling.split('.');
         }
 
         styling.forEach(style => {
             if (style == 'bold') {
-                this.dumpTheme[property].open += this.ansiStyles.bold.open;
-            } else if (this[style]) {
-                this.dumpTheme[property].open += this[style];
-            } else {
-                this.dumpTheme[property].open += this.ansiStyles.color[style].open;
+                formatted += this.ansiStyles.bold.open;
+            } else if (this['colors'][style]) {
+                formatted += this['colors'][style];
+            } else if (this.ansiStyles.color[style]) {
+                formatted += this.ansiStyles.color[style].open;
+            }
+        });
+
+        formatted += value;
+
+        styling.reverse().forEach(style => {
+            if (style == 'bold') {
+                formatted += this.ansiStyles.bold.close;
+            } else if (this['colors'][style]) {
+                formatted += this.ansiStyles.color.close;
+            } else if (this.ansiStyles.color[style]) {
+                formatted += this.ansiStyles.color[style].close;
+            }
+        });
+
+        return formatted;
+    }
+
+    applyPropertyStyle(property, styling)
+    {
+        if (typeof styling == 'string') {
+            styling = styling.split('.');
+        }
+
+        styling.forEach(style => {
+            if (! property.open) {
+                property.open = '';
+            }
+
+            if (style == 'bold') {
+                property.open += this.ansiStyles.bold.open;
+            } else if (this['colors'][style]) {
+                property.open += this['colors'][style];
+            } else if (this.ansiStyles.color[style]) {
+                property.open += this.ansiStyles.color[style].open;
             }
         });
 
         styling.reverse().forEach(style => {
+            if (! property.close) {
+                property.close = '';
+            }
+
             if (style == 'bold') {
-                this.dumpTheme[property].close += this.ansiStyles.bold.close;
-            } else if (this[style]) {
-                this.dumpTheme[property].close += this.ansiStyles.color.close;
-            } else {
-                this.dumpTheme[property].close += this.ansiStyles.color[style].close;
+                property.close += this.ansiStyles.bold.close;
+            } else if (this['colors'][style]) {
+                property.close += this.ansiStyles.color.close;
+            } else if (this.ansiStyles.color[style]) {
+                property.close += this.ansiStyles.color[style].close;
             }
         });
+    }
 
-        console.log(this.dumpTheme[property]);
+    applyTheme(theme)
+    {
+        this.registerColors(theme.colors);
+        this.style(theme.style);
     }
 
     constructor()
     {
+        this.defaultTheme = require('./defaultTheme');
+
         this.addLeftMargin = true;
         this.leftMarginSpaces = 1;
+
+        this.colors = {};
 
         this.ansiStyles = require('ansi-styles');
         this.concordance = require('concordance');
@@ -91,6 +188,8 @@ module.exports = class Intitule
         this.yellow = this.ansiStyles.color.ansi256.rgb(252, 127, 0);
         this.blue = this.ansiStyles.color.ansi256.rgb(36, 176, 213);
         this.green = this.ansiStyles.color.ansi256.rgb(141, 213, 102);
+
+        this.dumpTheme = {};
 
         this.dumpTheme = {
             boolean: {
@@ -417,6 +516,8 @@ module.exports = class Intitule
              */
             deletion: this.chalk.red,
         };
+
+        // this.applyTheme(this.defaultTheme);
     }
 
     diff(actual, expected)
