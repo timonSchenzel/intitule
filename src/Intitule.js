@@ -58,7 +58,7 @@ module.exports = class Intitule
 
         if (styling.constructor == Array) {
             this.dumpTheme[property] = {};
-            this.applyPropertyStyle(this.dumpTheme[property], styling);
+            this.dumpTheme[property] = this.applyPropertyStyle(styling);
         }
 
         if (styling.constructor == Object) {
@@ -79,7 +79,7 @@ module.exports = class Intitule
 
                 if (styling[subItem].constructor == Array) {
                     this.dumpTheme[property][subItem] = {};
-                    this.applyPropertyStyle(this.dumpTheme[property][subItem], styling[subItem]);
+                    this.dumpTheme[property][subItem] = this.applyPropertyStyle(styling[subItem]);
                 }
 
                 if (styling[subItem].constructor == Object) {
@@ -96,13 +96,15 @@ module.exports = class Intitule
                         }
 
                         if (subSubItem == 'color') {
-                            this.applyPropertyStyle(this.dumpTheme[property][subItem], styling[subItem].color);
+                            this.dumpTheme[property][subItem] = {};
+                            this.dumpTheme[property][subItem] = this.applyPropertyStyle(styling[subItem].color);
                         } else {
                             this.dumpTheme[property][subItem][subSubItem] = styling[subItem][subSubItem];
                         }
                     }
                 } else {
-                    this.applyPropertyStyle(this.dumpTheme[property][subItem], styling[subItem]);
+                    this.dumpTheme[property][subItem] = {};
+                    this.dumpTheme[property][subItem] = this.applyPropertyStyle(styling[subItem]);
                 }
             }
         }
@@ -141,8 +143,10 @@ module.exports = class Intitule
         return formatted;
     }
 
-    applyPropertyStyle(property, styling)
+    applyPropertyStyle(styling)
     {
+        let property = {};
+
         if (typeof styling == 'string') {
             styling = styling.split('.');
         }
@@ -174,6 +178,8 @@ module.exports = class Intitule
                 property.close += this.ansiStyles.color[style].close;
             }
         });
+
+        return property;
     }
 
     applyTheme(theme)
@@ -531,7 +537,7 @@ module.exports = class Intitule
             deletion: this.chalk.red,
         };
 
-        // this.applyTheme(this.defaultTheme);
+        this.applyTheme(this.defaultTheme);
     }
 
     diff(actual, expected)

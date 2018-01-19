@@ -70,14 +70,14 @@ module.exports = class ThemeTest extends TestCase
 
 		this.assertEquals(intitule.colors.red + 'invalid' + ansiStyles.color.close, intitule.dumpTheme.date.invalid);
 
-		console.log([intitule.dumpTheme.date.value]);
-		console.log([ansiStyles.blue]);
-
-        this.assertEquals(ansiStyles.blue, intitule.dumpTheme.date.value);
+        this.assertEquals({
+        	open: intitule.colors.blue,
+        	close: ansiStyles.color.close
+        }, intitule.dumpTheme.date.value);
 	}
 }
 
-// 
+//
 
 // intitule.registerColors({
 //     yellow: [252, 127, 0],
