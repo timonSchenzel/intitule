@@ -75,8 +75,40 @@ module.exports = class ThemeTest extends TestCase
         	close: ansiStyles.color.close
         }, intitule.dumpTheme.date.value);
 	}
+
+    /** @test */
+    it_is_possible_to_style_string_data_types()
+    {
+        this.assertEquals({
+            open: ansiStyles.bold.open + intitule.colors.green,
+            close: ansiStyles.color.close + ansiStyles.bold.close,
+            line: {open: intitule.colors.yellow + '\'' + ansiStyles.color.close, close: intitule.colors.yellow + '\'' + ansiStyles.color.close},
+            multiline: {start: intitule.make('green', '`'), end: intitule.make('green', '`')},
+            controlPicture: ansiStyles.grey,
+            diff: {
+                insert: {
+                    open: ansiStyles.bgGreen.open + ansiStyles.black.open,
+                    close: ansiStyles.black.close + ansiStyles.bgGreen.close
+                },
+                delete: {
+                    open: ansiStyles.bgRed.open + ansiStyles.black.open,
+                    close: ansiStyles.black.close + ansiStyles.bgRed.close
+                },
+                equal: ansiStyles.blue,
+                insertLine: {
+                    open: ansiStyles.green.open,
+                    close: ansiStyles.green.close
+                },
+                deleteLine: {
+                    open: ansiStyles.red.open,
+                    close: ansiStyles.red.close
+                }
+            }
+        }, intitule.dumpTheme.string);
+    }
 }
 
+// dump('1');
 //
 
 // intitule.registerColors({

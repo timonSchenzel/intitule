@@ -15,6 +15,11 @@ module.exports = class Intitule
         return this.green + value + this.ansiStyles.color.close;
     }
 
+    make(color, value)
+    {
+        return this.applyPropertyStyleWithValue(color, value);
+    }
+
     registerColors(colors)
     {
         for (let color in colors) {
