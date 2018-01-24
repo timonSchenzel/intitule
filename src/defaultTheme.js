@@ -3,6 +3,7 @@ module.exports = {
 		yellow: [252, 127, 0],
         blue: [36, 176, 213],
         green: [141, 213, 102],
+        red: 'a24344',
 	},
 
 	style: {
@@ -198,8 +199,8 @@ module.exports = {
             },
             controlPicture: 'grey',
             diff: {
-                insert: 'bg-green.black',
-                delete: 'bg-red.black',
+                insert: 'bgGreen.black',
+                delete: 'bgRed.black',
                 equal: 'blue',
                 insertLine: 'green',
                 deleteLine: 'red',
@@ -213,5 +214,214 @@ module.exports = {
         },
 
         undefined: 'yellow',
+
+        html: {
+            /**
+             * keyword in a regular Algol-style language
+             */
+            keyword: 'blue',
+
+            /**
+             * built-in or library object (constant, class, function)
+             */
+            built_in: 'cyan',
+
+            /**
+             * user-defined type in a language with first-class syntactically significant types, like
+             * Haskell
+             */
+            type: 'cyan.dim',
+
+            /**
+             * special identifier for a built-in value ("true", "false", "null")
+             */
+            literal: 'blue',
+
+            /**
+             * number, including units and modifiers, if any.
+             */
+            number: 'green',
+
+            /**
+             * literal regular expression
+             */
+            regexp: 'red',
+
+            /**
+             * literal string, character
+             */
+            string: 'greenBright',
+
+            /**
+             * parsed section inside a literal string
+             */
+            subst: 'reset',
+
+            /**
+             * symbolic constant, interned string, goto label
+             */
+            symbol: 'reset',
+
+            /**
+             * class or class-level declaration (interfaces, traits, modules, etc)
+             */
+            class: 'blue',
+
+            /**
+             * function or method declaration
+             */
+            function: 'yellow',
+
+            /**
+             * name of a class or a function at the place of declaration
+             */
+            title: 'reset',
+
+            /**
+             * block of function arguments (parameters) at the place of declaration
+             */
+            params: 'reset',
+
+            /**
+             * comment
+             */
+            comment: 'green',
+
+            /**
+             * documentation markup within comments
+             */
+            doctag: 'green',
+
+            /**
+             * flags, modifiers, annotations, processing instructions, preprocessor directive, etc
+             */
+            meta: 'grey',
+
+            /**
+             * keyword or built-in within meta construct
+             */
+            'meta-keyword': 'reset',
+
+            /**
+             * string within meta construct
+             */
+            'meta-string': 'reset',
+
+            /**
+             * heading of a section in a config file, heading in text markup
+             */
+            section: 'reset',
+
+            /**
+             * XML/HTML tag
+             */
+            tag: 'green',
+
+            /*
+             * name of an XML tag, the first word in an s-expression
+             */
+            name: 'green',
+
+            /**
+             * s-expression name from the language standard library
+             */
+            'builtin-name': 'reset',
+
+            /**
+             * name of an attribute with no language defined semantics (keys in JSON, setting names in
+             * .ini), also sub-attribute within another highlighted object, like XML tag
+             */
+            attr: 'yellow',
+
+            /**
+             * name of an attribute followed by a structured value part, like CSS properties
+             */
+            attribute: 'reset',
+
+            /**
+             * variable in a config or a template file, environment var expansion in a script
+             */
+            variable: 'reset',
+
+            /**
+             * list item bullet in text markup
+             */
+            bullet: 'reset',
+
+            /**
+             * code block in text markup
+             */
+            code: 'reset',
+
+            /**
+             * emphasis in text markup
+             */
+            emphasis: 'italic',
+
+            /**
+             * strong emphasis in text markup
+             */
+            strong: 'bold',
+
+            /**
+             * mathematical formula in text markup
+             */
+            formula: 'reset',
+
+            /**
+             * hyperlink in text markup
+             */
+            link: 'underline',
+
+            /**
+             * quotation in text markup
+             */
+            quote: 'reset',
+
+            /**
+             * tag selector in CSS
+             */
+            'selector-tag': 'reset',
+
+            /**
+             * #id selector in CSS
+             */
+            'selector-id': 'reset',
+
+            /**
+             * .class selector in CSS
+             */
+            'selector-class': 'reset',
+
+            /**
+             * [attr] selector in CSS
+             */
+            'selector-attr': 'reset',
+
+            /**
+             * :pseudo selector in CSS
+             */
+            'selector-pseudo': 'reset',
+
+            /**
+             * tag of a template language
+             */
+            'template-tag': 'reset',
+
+            /**
+             * variable in a template language
+             */
+            'template-variable': 'reset',
+
+            /**
+             * added or changed line in a diff
+             */
+            addition: 'green',
+
+            /**
+             * deleted line in a diff
+             */
+            deletion: 'red',
+        }
 	},
 };

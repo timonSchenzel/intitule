@@ -27,6 +27,15 @@ module.exports = class Intitule
         }
     }
 
+    bindAnsiColor(colorName, ansiColor)
+    {
+        if (ansiColor.startsWith('bg')) {
+            this['colors'][colorName] = this.ansiStyles[ansiColor].open;
+        } else {
+            this['colors'][colorName] = this.ansiStyles.color[ansiColor].open;
+        }
+    }
+
     registerColor(colorName, colorValue)
     {
         if (typeof colorValue == 'string') {
@@ -34,9 +43,17 @@ module.exports = class Intitule
                 colorValue = '#' + colorValue;
             }
 
-            this['colors'][colorName] = this.ansiStyles.color.ansi16m.hex(colorValue);
+            if (colorName.startsWith('bg')) {
+                this['colors'][colorName] = this.ansiStyles.bgColor.ansi16m.hex(colorValue);
+            } else {
+                this['colors'][colorName] = this.ansiStyles.color.ansi16m.hex(colorValue);
+            }
         } else if (typeof colorValue == 'object') {
-            this['colors'][colorName] = this.ansiStyles.color.ansi256.rgb(colorValue[0], colorValue[1], colorValue[2]);
+            if (colorName.startsWith('bg')) {
+                this['colors'][colorName] = this.ansiStyles.bgColor.ansi256.rgb(colorValue[0], colorValue[1], colorValue[2]);
+            } else {
+                this['colors'][colorName] = this.ansiStyles.color.ansi256.rgb(colorValue[0], colorValue[1], colorValue[2]);
+            }
         }
     }
 
@@ -53,8 +70,8 @@ module.exports = class Intitule
 
     styleProperty(property, styling)
     {
-        if (! this.dumpTheme[property]) {
-            this.dumpTheme[property] = {};
+        if (! this.theme[property]) {
+            this.theme[property] = {};
         }
 
         if (typeof styling == 'string') {
@@ -62,20 +79,20 @@ module.exports = class Intitule
         }
 
         if (styling.constructor == Array) {
-            this.dumpTheme[property] = {};
-            this.dumpTheme[property] = this.applyPropertyStyle(styling);
+            this.theme[property] = {};
+            this.theme[property] = this.applyPropertyStyle(styling);
         }
 
         if (styling.constructor == Object) {
             if (styling.color && styling.text) {
-                this.dumpTheme[property] = this.applyPropertyStyleWithValue(styling.color, styling.text);
+                this.theme[property] = this.applyPropertyStyleWithValue(styling.color, styling.text);
                 delete styling.color;
                 delete styling.text;
             }
 
             for (let subItem in styling) {
-                if (! this.dumpTheme[property][subItem]) {
-                    this.dumpTheme[property][subItem] = {};
+                if (! this.theme[property][subItem]) {
+                    this.theme[property][subItem] = {};
                 }
 
                 if (typeof styling[subItem] == 'string') {
@@ -83,33 +100,43 @@ module.exports = class Intitule
                 }
 
                 if (styling[subItem].constructor == Array) {
-                    this.dumpTheme[property][subItem] = {};
-                    this.dumpTheme[property][subItem] = this.applyPropertyStyle(styling[subItem]);
+                    this.theme[property][subItem] = {};
+                    if (subItem == 'color') {
+                        this.theme[property] = this.applyPropertyStyle(styling[subItem]);
+                    } else {
+                        this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem]);
+                    }
                 }
 
                 if (styling[subItem].constructor == Object) {
                     if (styling[subItem].color && styling[subItem].text) {
-                        this.dumpTheme[property][subItem] = this.applyPropertyStyleWithValue(styling[subItem].color, styling[subItem].text);
+                        this.theme[property][subItem] = this.applyPropertyStyleWithValue(styling[subItem].color, styling[subItem].text);
                         delete styling[subItem].color;
                         delete styling[subItem].text;
                     }
 
                     for (let subSubItem in styling[subItem]) {
                         if (styling[subItem][subSubItem].color && styling[subItem][subSubItem].text) {
-                            // console.log(styling[subItem][subSubItem]);
-                            this.dumpTheme[property][subItem][subSubItem] = this.applyPropertyStyleWithValue(styling[subItem][subSubItem].color, styling[subItem][subSubItem].text);
+                            this.theme[property][subItem][subSubItem] = this.applyPropertyStyleWithValue(styling[subItem][subSubItem].color, styling[subItem][subSubItem].text);
                         }
 
+                        // console.log(subSubItem);
+
                         if (subSubItem == 'color') {
-                            this.dumpTheme[property][subItem] = {};
-                            this.dumpTheme[property][subItem] = this.applyPropertyStyle(styling[subItem].color);
+                            // this.theme[property][subItem] = {};
+                            // this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem].color);
                         } else {
-                            this.dumpTheme[property][subItem][subSubItem] = styling[subItem][subSubItem];
+                            if (typeof styling[subItem][subSubItem] == 'string') {
+                                styling[subItem][subSubItem] = styling[subItem][subSubItem].split('.');
+
+                                // console.log(styling[subItem][subSubItem]);
+                                this.theme[property][subItem][subSubItem] = this.applyPropertyStyle(styling[subItem][subSubItem]);
+                            }
                         }
                     }
                 } else {
-                    this.dumpTheme[property][subItem] = {};
-                    this.dumpTheme[property][subItem] = this.applyPropertyStyle(styling[subItem]);
+                    this.theme[property][subItem] = {};
+                    this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem]);
                 }
             }
         }
@@ -124,8 +151,8 @@ module.exports = class Intitule
         }
 
         styling.forEach(style => {
-            if (style == 'bold') {
-                formatted += this.ansiStyles.bold.open;
+            if (this.colorModifiers.includes(style)) {
+                formatted += this.ansiStyles[style].open;
             } else if (this['colors'][style]) {
                 formatted += this['colors'][style];
             } else if (this.ansiStyles.color[style]) {
@@ -136,8 +163,8 @@ module.exports = class Intitule
         formatted += value;
 
         styling.reverse().forEach(style => {
-            if (style == 'bold') {
-                formatted += this.ansiStyles.bold.close;
+            if (this.colorModifiers.includes(style)) {
+                formatted += this.ansiStyles[style].close;
             } else if (this['colors'][style]) {
                 formatted += this.ansiStyles.color.close;
             } else if (this.ansiStyles.color[style]) {
@@ -161,12 +188,14 @@ module.exports = class Intitule
                 property.open = '';
             }
 
-            if (style == 'bold') {
-                property.open += this.ansiStyles.bold.open;
+            if (this.colorModifiers.includes(style)) {
+                property.open += this.ansiStyles[style].open;
             } else if (this['colors'][style]) {
                 property.open += this['colors'][style];
             } else if (this.ansiStyles.color[style]) {
                 property.open += this.ansiStyles.color[style].open;
+            } else if (this.ansiStyles[style]) {
+                property.open += this.ansiStyles[style].open;
             }
         });
 
@@ -175,12 +204,18 @@ module.exports = class Intitule
                 property.close = '';
             }
 
-            if (style == 'bold') {
-                property.close += this.ansiStyles.bold.close;
+            if (this.colorModifiers.includes(style)) {
+                property.close += this.ansiStyles[style].close;
             } else if (this['colors'][style]) {
-                property.close += this.ansiStyles.color.close;
+                if (style.startsWith('bg')) {
+                    property.close += this.ansiStyles.bgColor.close;
+                } else {
+                    property.close += this.ansiStyles.color.close;
+                }
             } else if (this.ansiStyles.color[style]) {
                 property.close += this.ansiStyles.color[style].close;
+            } else if (this.ansiStyles[style]) {
+                property.close += this.ansiStyles[style].close;
             }
         });
 
@@ -200,6 +235,17 @@ module.exports = class Intitule
         this.addLeftMargin = true;
         this.leftMarginSpaces = 1;
 
+        this.colorModifiers = [
+            'reset',
+            'bold',
+            'dim',
+            'italic',
+            'underline',
+            'inverse',
+            'hidden',
+            'strikethrough',
+        ];
+
         this.colors = {};
 
         this.ansiStyles = require('ansi-styles');
@@ -214,333 +260,334 @@ module.exports = class Intitule
         this.blue = this.ansiStyles.color.ansi256.rgb(36, 176, 213);
         this.green = this.ansiStyles.color.ansi256.rgb(141, 213, 102);
 
-        this.dumpTheme = {};
+        this.theme = {};
+        this.theme.html = {};
 
-        this.dumpTheme = {
-            boolean: {
-                open: this.ansiStyles.bold.open + this.yellow,
-                close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
-            },
-            circular: this.forceColor.grey('[Circular]'),
-            date: {
-                invalid: this.forceColor.red('invalid'),
-                value: this.ansiStyles.blue
-            },
-            diffGutters: {
-                actual: this.forceColor.red('-') + ' ',
-                expected: this.forceColor.green('+') + ' ',
-                padding: '  '
-            },
-            error: {
-                ctor: {open: this.ansiStyles.grey.open + '(', close: ')' + this.ansiStyles.grey.close},
-                name: this.ansiStyles.magenta
-            },
-            function: {
-                name: this.ansiStyles.blue,
-                stringTag: this.ansiStyles.magenta
-            },
-            global: this.ansiStyles.magenta,
-            item: {after: this.forceColor.grey(',')},
-            list: {openBracket: this.makeYellow('['), closeBracket: this.makeYellow(']')},
-            mapEntry: {after: this.forceColor.grey(',')},
-            maxDepth: this.forceColor.grey('…'),
-            null: {
-                open: this.ansiStyles.bold.open + this.yellow,
-                close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
-            },
-            number: {
-                open: this.ansiStyles.bold.open + this.blue,
-                close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
-            },
-            object: {
-                openBracket: this.makeYellow('{'),
-                closeBracket: this.makeYellow('}'),
-                ctor: {
-                    open: this.blue,
-                    close: this.ansiStyles.color.close,
-                },
-                stringTag: {open: this.ansiStyles.magenta.open + '@', close: this.ansiStyles.magenta.close},
-                secondaryStringTag: {open: this.ansiStyles.grey.open + '@', close: this.ansiStyles.grey.close}
-            },
-            property: {
-                after: this.forceColor.grey(','),
-                keyBracket: {open: this.forceColor.grey('['), close: this.forceColor.grey(']')},
-                valueFallback: this.forceColor.grey('…')
-            },
-            react: {
-                functionType: this.forceColor.grey('\u235F'),
-                openTag: {
-                    start: this.forceColor.grey('<'),
-                    end: this.forceColor.grey('>'),
-                    selfClose: this.forceColor.grey('/'),
-                    selfCloseVoid: ' ' + this.forceColor.grey('/')
-                },
-                closeTag: {
-                    open: this.forceColor.grey('</'),
-                    close: this.forceColor.grey('>')
-                },
-                tagName: this.ansiStyles.magenta,
-                attribute: {
-                    separator: '=',
-                    value: {
-                        openBracket: this.forceColor.grey('{'),
-                        closeBracket: this.forceColor.grey('}'),
-                        string: {
-                            line: {open: this.forceColor.blue('"'), close: this.forceColor.blue('"'), escapeQuote: '"'}
-                        }
-                    }
-                },
-                child: {
-                    openBracket: this.forceColor.grey('{'),
-                    closeBracket: this.forceColor.grey('}')
-                }
-            },
-            regexp: {
-                source: {open: this.ansiStyles.blue.open + '/', close: '/' + this.ansiStyles.blue.close},
-                flags: this.ansiStyles.yellow
-            },
-            stats: {separator: this.forceColor.grey('---')},
-            string: {
-                open: this.ansiStyles.bold.open + this.green,
-                close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
-                line: {open: this.yellow + '\'' + this.ansiStyles.color.close, close: this.yellow + '\'' + this.ansiStyles.color.close},
-                multiline: {start: this.forceColor.green('`'), end: this.forceColor.green('`')},
-                controlPicture: this.ansiStyles.grey,
-                diff: {
-                    insert: {
-                        open: this.ansiStyles.bgGreen.open + this.ansiStyles.black.open,
-                        close: this.ansiStyles.black.close + this.ansiStyles.bgGreen.close
-                    },
-                    delete: {
-                        open: this.ansiStyles.bgRed.open + this.ansiStyles.black.open,
-                        close: this.ansiStyles.black.close + this.ansiStyles.bgRed.close
-                    },
-                    equal: this.ansiStyles.blue,
-                    insertLine: {
-                        open: this.ansiStyles.green.open,
-                        close: this.ansiStyles.green.close
-                    },
-                    deleteLine: {
-                        open: this.ansiStyles.red.open,
-                        close: this.ansiStyles.red.close
-                    }
-                }
-            },
-            symbol: this.ansiStyles.yellow,
-            typedArray: {
-                bytes: this.ansiStyles.yellow
-            },
-            undefined: this.ansiStyles.yellow
-        };
+        // this.theme = {
+        //     boolean: {
+        //         open: this.ansiStyles.bold.open + this.yellow,
+        //         close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
+        //     },
+        //     circular: this.forceColor.grey('[Circular]'),
+        //     date: {
+        //         invalid: this.forceColor.red('invalid'),
+        //         value: this.ansiStyles.blue
+        //     },
+        //     diffGutters: {
+        //         actual: this.forceColor.red('-') + ' ',
+        //         expected: this.forceColor.green('+') + ' ',
+        //         padding: '  '
+        //     },
+        //     error: {
+        //         ctor: {open: this.ansiStyles.grey.open + '(', close: ')' + this.ansiStyles.grey.close},
+        //         name: this.ansiStyles.magenta
+        //     },
+        //     function: {
+        //         name: this.ansiStyles.blue,
+        //         stringTag: this.ansiStyles.magenta
+        //     },
+        //     global: this.ansiStyles.magenta,
+        //     item: {after: this.forceColor.grey(',')},
+        //     list: {openBracket: this.makeYellow('['), closeBracket: this.makeYellow(']')},
+        //     mapEntry: {after: this.forceColor.grey(',')},
+        //     maxDepth: this.forceColor.grey('…'),
+        //     null: {
+        //         open: this.ansiStyles.bold.open + this.yellow,
+        //         close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
+        //     },
+        //     number: {
+        //         open: this.ansiStyles.bold.open + this.blue,
+        //         close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
+        //     },
+        //     object: {
+        //         openBracket: this.makeYellow('{'),
+        //         closeBracket: this.makeYellow('}'),
+        //         ctor: {
+        //             open: this.blue,
+        //             close: this.ansiStyles.color.close,
+        //         },
+        //         stringTag: {open: this.ansiStyles.magenta.open + '@', close: this.ansiStyles.magenta.close},
+        //         secondaryStringTag: {open: this.ansiStyles.grey.open + '@', close: this.ansiStyles.grey.close}
+        //     },
+        //     property: {
+        //         after: this.forceColor.grey(','),
+        //         keyBracket: {open: this.forceColor.grey('['), close: this.forceColor.grey(']')},
+        //         valueFallback: this.forceColor.grey('…')
+        //     },
+        //     react: {
+        //         functionType: this.forceColor.grey('\u235F'),
+        //         openTag: {
+        //             start: this.forceColor.grey('<'),
+        //             end: this.forceColor.grey('>'),
+        //             selfClose: this.forceColor.grey('/'),
+        //             selfCloseVoid: ' ' + this.forceColor.grey('/')
+        //         },
+        //         closeTag: {
+        //             open: this.forceColor.grey('</'),
+        //             close: this.forceColor.grey('>')
+        //         },
+        //         tagName: this.ansiStyles.magenta,
+        //         attribute: {
+        //             separator: '=',
+        //             value: {
+        //                 openBracket: this.forceColor.grey('{'),
+        //                 closeBracket: this.forceColor.grey('}'),
+        //                 string: {
+        //                     line: {open: this.forceColor.blue('"'), close: this.forceColor.blue('"'), escapeQuote: '"'}
+        //                 }
+        //             }
+        //         },
+        //         child: {
+        //             openBracket: this.forceColor.grey('{'),
+        //             closeBracket: this.forceColor.grey('}')
+        //         }
+        //     },
+        //     regexp: {
+        //         source: {open: this.ansiStyles.blue.open + '/', close: '/' + this.ansiStyles.blue.close},
+        //         flags: this.ansiStyles.yellow
+        //     },
+        //     stats: {separator: this.forceColor.grey('---')},
+        //     string: {
+        //         open: this.ansiStyles.bold.open + this.green,
+        //         close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
+        //         line: {open: this.yellow + '\'' + this.ansiStyles.color.close, close: this.yellow + '\'' + this.ansiStyles.color.close},
+        //         multiline: {start: this.forceColor.green('`'), end: this.forceColor.green('`')},
+        //         controlPicture: this.ansiStyles.grey,
+        //         diff: {
+        //             insert: {
+        //                 open: this.ansiStyles.bgGreen.open + this.ansiStyles.black.open,
+        //                 close: this.ansiStyles.black.close + this.ansiStyles.bgGreen.close
+        //             },
+        //             delete: {
+        //                 open: this.ansiStyles.bgRed.open + this.ansiStyles.black.open,
+        //                 close: this.ansiStyles.black.close + this.ansiStyles.bgRed.close
+        //             },
+        //             equal: this.ansiStyles.blue,
+        //             insertLine: {
+        //                 open: this.ansiStyles.green.open,
+        //                 close: this.ansiStyles.green.close
+        //             },
+        //             deleteLine: {
+        //                 open: this.ansiStyles.red.open,
+        //                 close: this.ansiStyles.red.close
+        //             }
+        //         }
+        //     },
+        //     symbol: this.ansiStyles.yellow,
+        //     typedArray: {
+        //         bytes: this.ansiStyles.yellow
+        //     },
+        //     undefined: this.ansiStyles.yellow
+        // };
 
-        this.htmlDumpTheme = {
-            /**
-             * keyword in a regular Algol-style language
-             */
-            keyword: this.chalk.blue,
+        // this.theme.html = {
+        //     /**
+        //      * keyword in a regular Algol-style language
+        //      */
+        //     keyword: this.chalk.blue,
 
-            /**
-             * built-in or library object (constant, class, function)
-             */
-            built_in: this.chalk.cyan,
+        //     /**
+        //      * built-in or library object (constant, class, function)
+        //      */
+        //     built_in: this.chalk.cyan,
 
-            /**
-             * user-defined type in a language with first-class syntactically significant types, like
-             * Haskell
-             */
-            type: this.chalk.cyan.dim,
+        //     /**
+        //      * user-defined type in a language with first-class syntactically significant types, like
+        //      * Haskell
+        //      */
+        //     type: this.chalk.cyan.dim,
 
-            /**
-             * special identifier for a built-in value ("true", "false", "null")
-             */
-            literal: this.chalk.blue,
+        //     /**
+        //      * special identifier for a built-in value ("true", "false", "null")
+        //      */
+        //     literal: this.chalk.blue,
 
-            /**
-             * number, including units and modifiers, if any.
-             */
-            number: this.chalk.green,
+        //     /**
+        //      * number, including units and modifiers, if any.
+        //      */
+        //     number: this.chalk.green,
 
-            /**
-             * literal regular expression
-             */
-            regexp: this.chalk.red,
+        //     /**
+        //      * literal regular expression
+        //      */
+        //     regexp: this.chalk.red,
 
-            /**
-             * literal string, character
-             */
-            string: this.chalk.greenBright,
+        //     /**
+        //      * literal string, character
+        //      */
+        //     string: this.chalk.greenBright,
 
-            /**
-             * parsed section inside a literal string
-             */
-            subst: this.plainFormat,
+        //     /**
+        //      * parsed section inside a literal string
+        //      */
+        //     subst: this.plainFormat,
 
-            /**
-             * symbolic constant, interned string, goto label
-             */
-            symbol: this.plainFormat,
+        //     /**
+        //      * symbolic constant, interned string, goto label
+        //      */
+        //     symbol: this.plainFormat,
 
-            /**
-             * class or class-level declaration (interfaces, traits, modules, etc)
-             */
-            class: this.chalk.blue,
+        //     /**
+        //      * class or class-level declaration (interfaces, traits, modules, etc)
+        //      */
+        //     class: this.chalk.blue,
 
-            /**
-             * function or method declaration
-             */
-            function: this.chalk.yellow,
+        //     /**
+        //      * function or method declaration
+        //      */
+        //     function: this.chalk.yellow,
 
-            /**
-             * name of a class or a function at the place of declaration
-             */
-            title: this.plainFormat,
+        //     /**
+        //      * name of a class or a function at the place of declaration
+        //      */
+        //     title: this.plainFormat,
 
-            /**
-             * block of function arguments (parameters) at the place of declaration
-             */
-            params: this.plainFormat,
+        //     /**
+        //      * block of function arguments (parameters) at the place of declaration
+        //      */
+        //     params: this.plainFormat,
 
-            /**
-             * comment
-             */
-            comment: this.chalk.green,
+        //     /**
+        //      * comment
+        //      */
+        //     comment: this.chalk.green,
 
-            /**
-             * documentation markup within comments
-             */
-            doctag: this.chalk.green,
+        //     /**
+        //      * documentation markup within comments
+        //      */
+        //     doctag: this.chalk.green,
 
-            /**
-             * flags, modifiers, annotations, processing instructions, preprocessor directive, etc
-             */
-            meta: this.chalk.grey,
+        //     /**
+        //      * flags, modifiers, annotations, processing instructions, preprocessor directive, etc
+        //      */
+        //     meta: this.chalk.grey,
 
-            /**
-             * keyword or built-in within meta construct
-             */
-            'meta-keyword': this.plainFormat,
+        //     /**
+        //      * keyword or built-in within meta construct
+        //      */
+        //     'meta-keyword': this.plainFormat,
 
-            /**
-             * string within meta construct
-             */
-            'meta-string': this.plainFormat,
+        //     /**
+        //      * string within meta construct
+        //      */
+        //     'meta-string': this.plainFormat,
 
-            /**
-             * heading of a section in a config file, heading in text markup
-             */
-            section: this.plainFormat,
+        //     /**
+        //      * heading of a section in a config file, heading in text markup
+        //      */
+        //     section: this.plainFormat,
 
-            /**
-             * XML/HTML tag
-             */
-            tag: this.chalk.green,
+        //     /**
+        //      * XML/HTML tag
+        //      */
+        //     tag: this.chalk.green,
 
-            /**
-             * name of an XML tag, the first word in an s-expression
-             */
-            name: this.chalk.green,
 
-            /**
-             * s-expression name from the language standard library
-             */
-            'builtin-name': this.plainFormat,
+        //      * name of an XML tag, the first word in an s-expression
 
-            /**
-             * name of an attribute with no language defined semantics (keys in JSON, setting names in
-             * .ini), also sub-attribute within another highlighted object, like XML tag
-             */
-            attr: this.chalk.yellow,
+        //     name: this.chalk.green,
 
-            /**
-             * name of an attribute followed by a structured value part, like CSS properties
-             */
-            attribute: this.plainFormat,
+        //     /**
+        //      * s-expression name from the language standard library
+        //      */
+        //     'builtin-name': this.plainFormat,
 
-            /**
-             * variable in a config or a template file, environment var expansion in a script
-             */
-            variable: this.plainFormat,
+        //     /**
+        //      * name of an attribute with no language defined semantics (keys in JSON, setting names in
+        //      * .ini), also sub-attribute within another highlighted object, like XML tag
+        //      */
+        //     attr: this.chalk.yellow,
 
-            /**
-             * list item bullet in text markup
-             */
-            bullet: this.plainFormat,
+        //     /**
+        //      * name of an attribute followed by a structured value part, like CSS properties
+        //      */
+        //     attribute: this.plainFormat,
 
-            /**
-             * code block in text markup
-             */
-            code: this.plainFormat,
+        //     /**
+        //      * variable in a config or a template file, environment var expansion in a script
+        //      */
+        //     variable: this.plainFormat,
 
-            /**
-             * emphasis in text markup
-             */
-            emphasis: this.chalk.italic,
+        //     /**
+        //      * list item bullet in text markup
+        //      */
+        //     bullet: this.plainFormat,
 
-            /**
-             * strong emphasis in text markup
-             */
-            strong: this.chalk.bold,
+        //     /**
+        //      * code block in text markup
+        //      */
+        //     code: this.plainFormat,
 
-            /**
-             * mathematical formula in text markup
-             */
-            formula: this.plainFormat,
+        //     /**
+        //      * emphasis in text markup
+        //      */
+        //     emphasis: this.chalk.italic,
 
-            /**
-             * hyperlink in text markup
-             */
-            link: this.chalk.underline,
+        //     /**
+        //      * strong emphasis in text markup
+        //      */
+        //     strong: this.chalk.bold,
 
-            /**
-             * quotation in text markup
-             */
-            quote: this.plainFormat,
+        //     /**
+        //      * mathematical formula in text markup
+        //      */
+        //     formula: this.plainFormat,
 
-            /**
-             * tag selector in CSS
-             */
-            'selector-tag': this.plainFormat,
+        //     /**
+        //      * hyperlink in text markup
+        //      */
+        //     link: this.chalk.underline,
 
-            /**
-             * #id selector in CSS
-             */
-            'selector-id': this.plainFormat,
+        //     /**
+        //      * quotation in text markup
+        //      */
+        //     quote: this.plainFormat,
 
-            /**
-             * .class selector in CSS
-             */
-            'selector-class': this.plainFormat,
+        //     /**
+        //      * tag selector in CSS
+        //      */
+        //     'selector-tag': this.plainFormat,
 
-            /**
-             * [attr] selector in CSS
-             */
-            'selector-attr': this.plainFormat,
+        //     /**
+        //      * #id selector in CSS
+        //      */
+        //     'selector-id': this.plainFormat,
 
-            /**
-             * :pseudo selector in CSS
-             */
-            'selector-pseudo': this.plainFormat,
+        //     /**
+        //      * .class selector in CSS
+        //      */
+        //     'selector-class': this.plainFormat,
 
-            /**
-             * tag of a template language
-             */
-            'template-tag': this.plainFormat,
+        //     /**
+        //      * [attr] selector in CSS
+        //      */
+        //     'selector-attr': this.plainFormat,
 
-            /**
-             * variable in a template language
-             */
-            'template-variable': this.plainFormat,
+        //     /**
+        //      * :pseudo selector in CSS
+        //      */
+        //     'selector-pseudo': this.plainFormat,
 
-            /**
-             * added or changed line in a diff
-             */
-            addition: this.chalk.green,
+        //     /**
+        //      * tag of a template language
+        //      */
+        //     'template-tag': this.plainFormat,
 
-            /**
-             * deleted line in a diff
-             */
-            deletion: this.chalk.red,
-        };
+        //     /**
+        //      * variable in a template language
+        //      */
+        //     'template-variable': this.plainFormat,
+
+        //     /**
+        //      * added or changed line in a diff
+        //      */
+        //     addition: this.chalk.green,
+
+        //     /**
+        //      * deleted line in a diff
+        //      */
+        //     deletion: this.chalk.red,
+        // };
 
         this.applyTheme(this.defaultTheme);
     }
@@ -550,16 +597,16 @@ module.exports = class Intitule
         if (this.isHtml(actual)) {
             actual = this.prettier.format(actual);
             actual = actual.substring(0, actual.length - 2);
-            actual = this.highlight(actual, {language: 'html', ignoreIllegals: true, theme: this.htmlDumpTheme});
+            actual = this.highlight(actual, {language: 'html', ignoreIllegals: true, theme: this.theme.html});
         }
 
         if (this.isHtml(expected)) {
             expected = this.prettier.format(expected);
             expected = expected.substring(0, expected.length - 2);
-            expected = this.highlight(expected, {language: 'html', ignoreIllegals: true, theme: this.htmlDumpTheme});
+            expected = this.highlight(expected, {language: 'html', ignoreIllegals: true, theme: this.theme.html});
         }
 
-        this.write(this.concordance.diff(actual, expected, {plugins: [], theme: this.dumpTheme}));
+        this.write(this.concordance.diff(actual, expected, {plugins: [], theme: this.theme}));
     }
 
     ddDiff(actual, expected)
@@ -574,13 +621,13 @@ module.exports = class Intitule
         if (this.isHtml(value)) {
             value = this.prettier.format(value);
             value = value.substring(0, value.length - 2);
-            value = this.highlight(value, {language: 'html', ignoreIllegals: true, theme: this.htmlDumpTheme});
+            value = this.highlight(value, {language: 'html', ignoreIllegals: true, theme: this.theme.html});
 
             this.write(value);
             return;
         }
 
-        let formatted = this.concordance.format(value, {plugins: [], theme: this.dumpTheme})
+        let formatted = this.concordance.format(value, {plugins: [], theme: this.theme});
 
         if (typeof value == 'object' && value !== null) {
             if (value.constructor == Array) {
