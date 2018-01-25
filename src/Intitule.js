@@ -61,14 +61,20 @@ module.exports = class Intitule
     {
         if (typeof properties == 'object') {
             for (let property in properties) {
-                this.styleProperty(property, properties[property]);
+                if (property == 'html') {
+                    for (let htmlProperty in properties.html) {
+                        this.theme.html[htmlProperty] = this.applyPropertyStyle(properties.html[htmlProperty], true);
+                    }
+                } else {
+                    this.styleProperty(property, properties[property]);
+                }
             }
         } else {
             this.styleProperty(properties, styling);
         }
     }
 
-    styleProperty(property, styling)
+    styleProperty(property, styling, isHtml)
     {
         if (! this.theme[property]) {
             this.theme[property] = {};
@@ -80,7 +86,7 @@ module.exports = class Intitule
 
         if (styling.constructor == Array) {
             this.theme[property] = {};
-            this.theme[property] = this.applyPropertyStyle(styling);
+            this.theme[property] = this.applyPropertyStyle(styling, isHtml);
         }
 
         if (styling.constructor == Object) {
@@ -102,9 +108,9 @@ module.exports = class Intitule
                 if (styling[subItem].constructor == Array) {
                     this.theme[property][subItem] = {};
                     if (subItem == 'color') {
-                        this.theme[property] = this.applyPropertyStyle(styling[subItem]);
+                        this.theme[property] = this.applyPropertyStyle(styling[subItem], isHtml);
                     } else {
-                        this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem]);
+                        this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem], isHtml);
                     }
                 }
 
@@ -124,19 +130,19 @@ module.exports = class Intitule
 
                         if (subSubItem == 'color') {
                             // this.theme[property][subItem] = {};
-                            // this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem].color);
+                            // this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem].color, isHtml);
                         } else {
                             if (typeof styling[subItem][subSubItem] == 'string') {
                                 styling[subItem][subSubItem] = styling[subItem][subSubItem].split('.');
 
                                 // console.log(styling[subItem][subSubItem]);
-                                this.theme[property][subItem][subSubItem] = this.applyPropertyStyle(styling[subItem][subSubItem]);
+                                this.theme[property][subItem][subSubItem] = this.applyPropertyStyle(styling[subItem][subSubItem], isHtml);
                             }
                         }
                     }
                 } else {
                     this.theme[property][subItem] = {};
-                    this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem]);
+                    this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem], isHtml);
                 }
             }
         }
@@ -175,49 +181,103 @@ module.exports = class Intitule
         return formatted;
     }
 
-    applyPropertyStyle(styling)
+    applyPropertyStyle(styling, isHtml)
     {
+        let count = 0;
+
         let property = {};
 
         if (typeof styling == 'string') {
             styling = styling.split('.');
         }
 
-        styling.forEach(style => {
-            if (! property.open) {
-                property.open = '';
-            }
+        if (isHtml) {
+            // console.log('-------------');
+            // console.log(styling);
+            // console.log(styling);
+            // let chalkProperty = this.chalk;
+            property = this.chalk.reset;
 
-            if (this.colorModifiers.includes(style)) {
-                property.open += this.ansiStyles[style].open;
-            } else if (this['colors'][style]) {
-                property.open += this['colors'][style];
-            } else if (this.ansiStyles.color[style]) {
-                property.open += this.ansiStyles.color[style].open;
-            } else if (this.ansiStyles[style]) {
-                property.open += this.ansiStyles[style].open;
+            // styling.forEach(style => {
+            //     property = property[style];
+            // });
+
+            // console.log(styling);
+            // console.log(this.chalk[styling]);
+            // process.exit();
+            // property = this.chalk[styling];
+            // property = chalkProperty;
+            // property = this.chalk[styling];
+        }
+
+        styling.forEach(style => {
+            if (! isHtml) {
+                if (! property.open) {
+                    property.open = '';
+                }
+
+                if (this.colorModifiers.includes(style)) {
+                    property.open += this.ansiStyles[style].open;
+                } else if (this['colors'][style]) {
+                    property.open += this['colors'][style];
+                } else if (this.ansiStyles.color[style]) {
+                    property.open += this.ansiStyles.color[style].open;
+                } else if (this.ansiStyles[style]) {
+                    property.open += this.ansiStyles[style].open;
+                }
+            } else {
+                if (this.colorModifiers.includes(style)) {
+                    property._styles[0].open += this.ansiStyles[style].open;
+                } else if (this['colors'][style]) {
+                    property._styles[0].open += this['colors'][style];
+                } else if (this.ansiStyles.color[style]) {
+                    property._styles[0].open += this.ansiStyles.color[style].open;
+                } else if (this.ansiStyles[style]) {
+                    property._styles[0].open += this.ansiStyles[style].open;
+                }
             }
         });
 
         styling.reverse().forEach(style => {
-            if (! property.close) {
-                property.close = '';
-            }
-
-            if (this.colorModifiers.includes(style)) {
-                property.close += this.ansiStyles[style].close;
-            } else if (this['colors'][style]) {
-                if (style.startsWith('bg')) {
-                    property.close += this.ansiStyles.bgColor.close;
-                } else {
-                    property.close += this.ansiStyles.color.close;
+            if (! isHtml) {
+                if (! property.close) {
+                    property.close = '';
                 }
-            } else if (this.ansiStyles.color[style]) {
-                property.close += this.ansiStyles.color[style].close;
-            } else if (this.ansiStyles[style]) {
-                property.close += this.ansiStyles[style].close;
+
+                if (this.colorModifiers.includes(style)) {
+                    property.close += this.ansiStyles[style].close;
+                } else if (this['colors'][style]) {
+                    if (style.startsWith('bg')) {
+                        property.close += this.ansiStyles.bgColor.close;
+                    } else {
+                        property.close += this.ansiStyles.color.close;
+                    }
+                } else if (this.ansiStyles.color[style]) {
+                    property.close += this.ansiStyles.color[style].close;
+                } else if (this.ansiStyles[style]) {
+                    property.close += this.ansiStyles[style].close;
+                }
+            } else {
+                if (this.colorModifiers.includes(style)) {
+                    property._styles[0].close += this.ansiStyles[style].close;
+                } else if (this['colors'][style]) {
+                    if (style.startsWith('bg')) {
+                        property._styles[0].close += this.ansiStyles.bgColor.close;
+                    } else {
+                        property._styles[0].close += this.ansiStyles.color.close;
+                    }
+                } else if (this.ansiStyles.color[style]) {
+                    property._styles[0].close += this.ansiStyles.color[style].close;
+                } else if (this.ansiStyles[style]) {
+                    property._styles[0].close += this.ansiStyles[style].close;
+                }
             }
         });
+
+        if (isHtml) {
+
+            console.log(property);
+        }
 
         return property;
     }
@@ -381,211 +441,46 @@ module.exports = class Intitule
         // };
 
         // this.theme.html = {
-        //     /**
-        //      * keyword in a regular Algol-style language
-        //      */
         //     keyword: this.chalk.blue,
-
-        //     /**
-        //      * built-in or library object (constant, class, function)
-        //      */
         //     built_in: this.chalk.cyan,
-
-        //     /**
-        //      * user-defined type in a language with first-class syntactically significant types, like
-        //      * Haskell
-        //      */
         //     type: this.chalk.cyan.dim,
-
-        //     /**
-        //      * special identifier for a built-in value ("true", "false", "null")
-        //      */
         //     literal: this.chalk.blue,
-
-        //     /**
-        //      * number, including units and modifiers, if any.
-        //      */
         //     number: this.chalk.green,
-
-        //     /**
-        //      * literal regular expression
-        //      */
         //     regexp: this.chalk.red,
-
-        //     /**
-        //      * literal string, character
-        //      */
         //     string: this.chalk.greenBright,
-
-        //     /**
-        //      * parsed section inside a literal string
-        //      */
         //     subst: this.plainFormat,
-
-        //     /**
-        //      * symbolic constant, interned string, goto label
-        //      */
         //     symbol: this.plainFormat,
-
-        //     /**
-        //      * class or class-level declaration (interfaces, traits, modules, etc)
-        //      */
         //     class: this.chalk.blue,
-
-        //     /**
-        //      * function or method declaration
-        //      */
         //     function: this.chalk.yellow,
-
-        //     /**
-        //      * name of a class or a function at the place of declaration
-        //      */
         //     title: this.plainFormat,
-
-        //     /**
-        //      * block of function arguments (parameters) at the place of declaration
-        //      */
         //     params: this.plainFormat,
-
-        //     /**
-        //      * comment
-        //      */
         //     comment: this.chalk.green,
-
-        //     /**
-        //      * documentation markup within comments
-        //      */
         //     doctag: this.chalk.green,
-
-        //     /**
-        //      * flags, modifiers, annotations, processing instructions, preprocessor directive, etc
-        //      */
         //     meta: this.chalk.grey,
-
-        //     /**
-        //      * keyword or built-in within meta construct
-        //      */
         //     'meta-keyword': this.plainFormat,
-
-        //     /**
-        //      * string within meta construct
-        //      */
         //     'meta-string': this.plainFormat,
-
-        //     /**
-        //      * heading of a section in a config file, heading in text markup
-        //      */
         //     section: this.plainFormat,
-
-        //     /**
-        //      * XML/HTML tag
-        //      */
         //     tag: this.chalk.green,
-
-
-        //      * name of an XML tag, the first word in an s-expression
-
         //     name: this.chalk.green,
-
-        //     /**
-        //      * s-expression name from the language standard library
-        //      */
         //     'builtin-name': this.plainFormat,
-
-        //     /**
-        //      * name of an attribute with no language defined semantics (keys in JSON, setting names in
-        //      * .ini), also sub-attribute within another highlighted object, like XML tag
-        //      */
         //     attr: this.chalk.yellow,
-
-        //     /**
-        //      * name of an attribute followed by a structured value part, like CSS properties
-        //      */
         //     attribute: this.plainFormat,
-
-        //     /**
-        //      * variable in a config or a template file, environment var expansion in a script
-        //      */
         //     variable: this.plainFormat,
-
-        //     /**
-        //      * list item bullet in text markup
-        //      */
         //     bullet: this.plainFormat,
-
-        //     /**
-        //      * code block in text markup
-        //      */
         //     code: this.plainFormat,
-
-        //     /**
-        //      * emphasis in text markup
-        //      */
         //     emphasis: this.chalk.italic,
-
-        //     /**
-        //      * strong emphasis in text markup
-        //      */
         //     strong: this.chalk.bold,
-
-        //     /**
-        //      * mathematical formula in text markup
-        //      */
         //     formula: this.plainFormat,
-
-        //     /**
-        //      * hyperlink in text markup
-        //      */
         //     link: this.chalk.underline,
-
-        //     /**
-        //      * quotation in text markup
-        //      */
         //     quote: this.plainFormat,
-
-        //     /**
-        //      * tag selector in CSS
-        //      */
         //     'selector-tag': this.plainFormat,
-
-        //     /**
-        //      * #id selector in CSS
-        //      */
         //     'selector-id': this.plainFormat,
-
-        //     /**
-        //      * .class selector in CSS
-        //      */
         //     'selector-class': this.plainFormat,
-
-        //     /**
-        //      * [attr] selector in CSS
-        //      */
         //     'selector-attr': this.plainFormat,
-
-        //     /**
-        //      * :pseudo selector in CSS
-        //      */
         //     'selector-pseudo': this.plainFormat,
-
-        //     /**
-        //      * tag of a template language
-        //      */
         //     'template-tag': this.plainFormat,
-
-        //     /**
-        //      * variable in a template language
-        //      */
         //     'template-variable': this.plainFormat,
-
-        //     /**
-        //      * added or changed line in a diff
-        //      */
         //     addition: this.chalk.green,
-
-        //     /**
-        //      * deleted line in a diff
-        //      */
         //     deletion: this.chalk.red,
         // };
 

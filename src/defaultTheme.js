@@ -216,6 +216,48 @@ module.exports = {
         undefined: 'yellow',
 
         html: {
+            // keyword: chalk.blue,
+            // built_in: chalk.cyan,
+            // type: chalk.cyan.dim,
+            // literal: chalk.blue,
+            // number: chalk.green,
+            // regexp: chalk.red,
+            // string: chalk.greenBright,
+            // subst: chalk.reset,
+            // symbol: chalk.reset,
+            // class: chalk.blue,
+            // function: chalk.yellow,
+            // title: chalk.reset,
+            // params: chalk.reset,
+            // comment: chalk.green,
+            // doctag: chalk.green,
+            // meta: chalk.grey,
+            // 'meta-keyword': chalk.reset,
+            // 'meta-string': chalk.reset,
+            // section: chalk.reset,
+            // tag: chalk.green,
+            // name: chalk.green,
+            // 'builtin-name': chalk.reset,
+            // attr: chalk.yellow,
+            // attribute: chalk.reset,
+            // variable: chalk.reset,
+            // bullet: chalk.reset,
+            // code: chalk.reset,
+            // emphasis: chalk.italic,
+            // strong: chalk.bold,
+            // formula: chalk.reset,
+            // link: chalk.underline,
+            // quote: chalk.reset,
+            // 'selector-tag': chalk.reset,
+            // 'selector-id': chalk.reset,
+            // 'selector-class': chalk.reset,
+            // 'selector-attr': chalk.reset,
+            // 'selector-pseudo': chalk.reset,
+            // 'template-tag': chalk.reset,
+            // 'template-variable': chalk.reset,
+            // addition: chalk.green,
+            // deletion: chalk.red,
+
             /**
              * keyword in a regular Algol-style language
              */
@@ -317,10 +359,10 @@ module.exports = {
              */
             tag: 'green',
 
-            /*
+            /**
              * name of an XML tag, the first word in an s-expression
              */
-            name: 'green',
+            name: 'yellow',
 
             /**
              * s-expression name from the language standard library
