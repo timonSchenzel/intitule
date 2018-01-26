@@ -362,7 +362,7 @@ module.exports = {
             /**
              * name of an XML tag, the first word in an s-expression
              */
-            name: 'yellow',
+            name: 'green',
 
             /**
              * s-expression name from the language standard library
@@ -454,16 +454,6 @@ module.exports = {
              * variable in a template language
              */
             'template-variable': 'reset',
-
-            /**
-             * added or changed line in a diff
-             */
-            addition: 'green',
-
-            /**
-             * deleted line in a diff
-             */
-            deletion: 'red',
         }
 	},
 };

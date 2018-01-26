@@ -63,14 +63,20 @@ module.exports = class Intitule
             for (let property in properties) {
                 if (property == 'html') {
                     for (let htmlProperty in properties.html) {
-                        this.theme.html[htmlProperty] = this.applyPropertyStyle(properties.html[htmlProperty], true);
+                        this.theme.html[htmlProperty] = this.applyPropertyStyle(properties.html[htmlProperty], true, htmlProperty);
                     }
                 } else {
                     this.styleProperty(property, properties[property]);
                 }
             }
         } else {
-            this.styleProperty(properties, styling);
+            if (properties == 'html') {
+                for (let htmlProperty in styling) {
+                    this.theme.html[htmlProperty] = this.applyPropertyStyle(styling[htmlProperty], true);
+                }
+            } else {
+                this.styleProperty(properties, styling);
+            }
         }
     }
 
@@ -181,10 +187,8 @@ module.exports = class Intitule
         return formatted;
     }
 
-    applyPropertyStyle(styling, isHtml)
+    applyPropertyStyle(styling, isHtml = false, propertyName = null)
     {
-        let count = 0;
-
         let property = {};
 
         if (typeof styling == 'string') {
@@ -197,6 +201,8 @@ module.exports = class Intitule
             // console.log(styling);
             // let chalkProperty = this.chalk;
             property = this.chalk.reset;
+            property._styles[0].open = '';
+            property._styles[0].close = ''
 
             // styling.forEach(style => {
             //     property = property[style];
@@ -216,10 +222,10 @@ module.exports = class Intitule
                     property.open = '';
                 }
 
-                if (this.colorModifiers.includes(style)) {
-                    property.open += this.ansiStyles[style].open;
-                } else if (this['colors'][style]) {
+                if (this['colors'][style]) {
                     property.open += this['colors'][style];
+                } else if (this.colorModifiers.includes(style)) {
+                    property.open += this.ansiStyles[style].open;
                 } else if (this.ansiStyles.color[style]) {
                     property.open += this.ansiStyles.color[style].open;
                 } else if (this.ansiStyles[style]) {
@@ -273,11 +279,6 @@ module.exports = class Intitule
                 }
             }
         });
-
-        if (isHtml) {
-
-            console.log(property);
-        }
 
         return property;
     }

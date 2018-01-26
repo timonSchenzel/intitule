@@ -3,6 +3,32 @@ module.exports = class ThemeTest extends TestCase
 	/** @test */
 	it_is_possible_to_specify_a_color_in_rgb_format()
 	{
+        // intitule.style('html', {
+        //     /**
+        //      * XML/HTML tag
+        //      */
+        //     tag: 'green',
+
+        //     /**
+        //      * name of an XML tag, the first word in an s-expression
+        //      */
+        //     name: 'green',
+        // });
+
+        dd(`
+         <html>
+         <body>
+
+         <h2 title="I'm a header">The title attribute</h2>
+
+         <p title="I'm a tooltip">
+         Mouse over this paragraph, to display the title attribute as a tooltip.
+         </p>
+
+         </body>
+         </html>
+        `);
+
 		intitule.registerColor('red', [255, 0, 0]);
 
 		this.assertEquals(
@@ -152,38 +178,50 @@ module.exports = class ThemeTest extends TestCase
             close: ansiStyles.color.close
         }, intitule.theme.string.diff.deleteLine);
     }
+
+    /** @test */
+    it_is_possible_to_style_html()
+    {
+        intitule.registerColor('red', 'a24344');
+        intitule.style('html', {
+            name: 'red',
+        });
+
+        this.assertEquals(intitule.colors.red, intitule.theme.html.name._styles[0].open);
+        this.assertEquals(ansiStyles.color.close, intitule.theme.html.name._styles[0].close);
+    }
 }
 
 
 
 
 
-dump();
-dump('');
-dump(true);
-dump(false);
-dump(null);
-dump(1234567890);
-dump('foo');
-dump([1,2,3]);
-dump({1:1,2:2,3:3});
-dump({foo: 'bar', bar: 'baz', 'number': 22});
-dump(Foo);
-dump(fooInstance);
-dump(`
-	<html>
-	<body>
+// dump();
+// dump('');
+// dump(true);
+// dump(false);
+// dump(null);
+// dump(1234567890);
+// dump('foo');
+// dump([1,2,3]);
+// dump({1:1,2:2,3:3});
+// dump({foo: 'bar', bar: 'baz', 'number': 22});
+// dump(Foo);
+// dump(fooInstance);
+// dump(`
+// 	<html>
+// 	<body>
 
-	<h2 title="I'm a header">The title attribute</h2>
+// 	<h2 title="I'm a header">The title attribute</h2>
 
-	<p title="I'm a tooltip">
-	Mouse over this paragraph, to display the title attribute as a tooltip.
-	</p>
+// 	<p title="I'm a tooltip">
+// 	Mouse over this paragraph, to display the title attribute as a tooltip.
+// 	</p>
 
-	</body>
-	</html>
-`);
-diff('foo', 'bar');
-diff('foo', 'foobar');
-diff('foobar', 'bar');
+// 	</body>
+// 	</html>
+// `);
+// diff('foo', 'bar');
+// diff('foo', 'foobar');
+// diff('foobar', 'bar');
 // dd('done.');
