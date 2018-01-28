@@ -3,32 +3,6 @@ module.exports = class ThemeTest extends TestCase
 	/** @test */
 	it_is_possible_to_specify_a_color_in_rgb_format()
 	{
-        // intitule.style('html', {
-        //     /**
-        //      * XML/HTML tag
-        //      */
-        //     tag: 'green',
-
-        //     /**
-        //      * name of an XML tag, the first word in an s-expression
-        //      */
-        //     name: 'green',
-        // });
-
-        dd(`
-         <html>
-         <body>
-
-         <h2 title="I'm a header">The title attribute</h2>
-
-         <p title="I'm a tooltip">
-         Mouse over this paragraph, to display the title attribute as a tooltip.
-         </p>
-
-         </body>
-         </html>
-        `);
-
 		intitule.registerColor('red', [255, 0, 0]);
 
 		this.assertEquals(
@@ -182,13 +156,27 @@ module.exports = class ThemeTest extends TestCase
     /** @test */
     it_is_possible_to_style_html()
     {
-        intitule.registerColor('red', 'a24344');
+        let chalk = require('chalk');
+
+        intitule.registerColor('violet', '8a2be2');
         intitule.style('html', {
-            name: 'red',
+            name: 'violet',
         });
 
-        this.assertEquals(intitule.colors.red, intitule.theme.html.name._styles[0].open);
+        this.assertEquals(intitule.colors.violet, intitule.theme.html.name._styles[0].open);
         this.assertEquals(ansiStyles.color.close, intitule.theme.html.name._styles[0].close);
+    }
+
+    /** @test */
+    with_html_style_it_will_fallback_to_chalk_colors_if_available()
+    {
+        let chalk = require('chalk');
+
+        intitule.style('html', {
+            name: 'cyan',
+        });
+
+        this.assertEquals(chalk.cyan._styles, intitule.theme.html.name._styles);
     }
 }
 

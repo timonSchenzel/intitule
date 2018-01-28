@@ -1,18 +1,41 @@
 module.exports = class Intitule
 {
-    makeYellow(value)
+    constructor()
     {
-        return this.yellow + value + this.ansiStyles.color.close;
-    }
+        this.defaultTheme = require('./defaultTheme');
 
-    makeBlue(value)
-    {
-        return this.blue + value + this.ansiStyles.color.close;
-    }
+        this.addLeftMargin = true;
+        this.leftMarginSpaces = 1;
 
-    makeGreen(value)
-    {
-        return this.green + value + this.ansiStyles.color.close;
+        this.colorModifiers = [
+            'reset',
+            'bold',
+            'dim',
+            'italic',
+            'underline',
+            'inverse',
+            'hidden',
+            'strikethrough',
+        ];
+
+        this.colors = {};
+
+        this.ansiStyles = require('ansi-styles');
+        this.concordance = require('concordance');
+        this.highlight = require('cli-highlight').highlight;
+        this.prettier = require('prettier');
+        this.isHtml = require('is-html');
+        this.chalk = require('chalk');
+        this.forceColor = new this.chalk.constructor({enabled: true});
+
+        this.yellow = this.ansiStyles.color.ansi256.rgb(252, 127, 0);
+        this.blue = this.ansiStyles.color.ansi256.rgb(36, 176, 213);
+        this.green = this.ansiStyles.color.ansi256.rgb(141, 213, 102);
+
+        this.theme = {};
+        this.theme.html = {};
+
+        this.applyTheme(this.defaultTheme);
     }
 
     make(color, value)
@@ -132,16 +155,10 @@ module.exports = class Intitule
                             this.theme[property][subItem][subSubItem] = this.applyPropertyStyleWithValue(styling[subItem][subSubItem].color, styling[subItem][subSubItem].text);
                         }
 
-                        // console.log(subSubItem);
-
-                        if (subSubItem == 'color') {
-                            // this.theme[property][subItem] = {};
-                            // this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem].color, isHtml);
-                        } else {
+                        if (subSubItem != 'color') {
                             if (typeof styling[subItem][subSubItem] == 'string') {
                                 styling[subItem][subSubItem] = styling[subItem][subSubItem].split('.');
 
-                                // console.log(styling[subItem][subSubItem]);
                                 this.theme[property][subItem][subSubItem] = this.applyPropertyStyle(styling[subItem][subSubItem], isHtml);
                             }
                         }
@@ -189,6 +206,7 @@ module.exports = class Intitule
 
     applyPropertyStyle(styling, isHtml = false, propertyName = null)
     {
+        let chalk = require('chalk');
         let property = {};
 
         if (typeof styling == 'string') {
@@ -196,24 +214,21 @@ module.exports = class Intitule
         }
 
         if (isHtml) {
-            // console.log('-------------');
-            // console.log(styling);
-            // console.log(styling);
-            // let chalkProperty = this.chalk;
-            property = this.chalk.reset;
-            property._styles[0].open = '';
-            property._styles[0].close = ''
+            property = chalk.reset;
 
-            // styling.forEach(style => {
-            //     property = property[style];
-            // });
+            if (this['colors'][styling[0]]) {
+                property._styles[0].open = this['colors'][styling[0]];
+                property._styles[0].close = this.ansiStyles.color.close;
 
-            // console.log(styling);
-            // console.log(this.chalk[styling]);
-            // process.exit();
-            // property = this.chalk[styling];
-            // property = chalkProperty;
-            // property = this.chalk[styling];
+                return property;
+            } else {
+                let blankChalk = require('chalk');
+                return blankChalk[styling[0]];
+            }
+
+            // property = chalk.reset;
+            // property._styles[0].open = '';
+            // property._styles[0].close = '';
         }
 
         styling.forEach(style => {
@@ -287,205 +302,6 @@ module.exports = class Intitule
     {
         this.registerColors(theme.colors);
         this.style(theme.style);
-    }
-
-    constructor()
-    {
-        this.defaultTheme = require('./defaultTheme');
-
-        this.addLeftMargin = true;
-        this.leftMarginSpaces = 1;
-
-        this.colorModifiers = [
-            'reset',
-            'bold',
-            'dim',
-            'italic',
-            'underline',
-            'inverse',
-            'hidden',
-            'strikethrough',
-        ];
-
-        this.colors = {};
-
-        this.ansiStyles = require('ansi-styles');
-        this.concordance = require('concordance');
-        this.highlight = require('cli-highlight').highlight;
-        this.prettier = require('prettier');
-        this.isHtml = require('is-html');
-        this.chalk = require('chalk');
-        this.forceColor = new this.chalk.constructor({enabled: true});
-
-        this.yellow = this.ansiStyles.color.ansi256.rgb(252, 127, 0);
-        this.blue = this.ansiStyles.color.ansi256.rgb(36, 176, 213);
-        this.green = this.ansiStyles.color.ansi256.rgb(141, 213, 102);
-
-        this.theme = {};
-        this.theme.html = {};
-
-        // this.theme = {
-        //     boolean: {
-        //         open: this.ansiStyles.bold.open + this.yellow,
-        //         close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
-        //     },
-        //     circular: this.forceColor.grey('[Circular]'),
-        //     date: {
-        //         invalid: this.forceColor.red('invalid'),
-        //         value: this.ansiStyles.blue
-        //     },
-        //     diffGutters: {
-        //         actual: this.forceColor.red('-') + ' ',
-        //         expected: this.forceColor.green('+') + ' ',
-        //         padding: '  '
-        //     },
-        //     error: {
-        //         ctor: {open: this.ansiStyles.grey.open + '(', close: ')' + this.ansiStyles.grey.close},
-        //         name: this.ansiStyles.magenta
-        //     },
-        //     function: {
-        //         name: this.ansiStyles.blue,
-        //         stringTag: this.ansiStyles.magenta
-        //     },
-        //     global: this.ansiStyles.magenta,
-        //     item: {after: this.forceColor.grey(',')},
-        //     list: {openBracket: this.makeYellow('['), closeBracket: this.makeYellow(']')},
-        //     mapEntry: {after: this.forceColor.grey(',')},
-        //     maxDepth: this.forceColor.grey('…'),
-        //     null: {
-        //         open: this.ansiStyles.bold.open + this.yellow,
-        //         close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
-        //     },
-        //     number: {
-        //         open: this.ansiStyles.bold.open + this.blue,
-        //         close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
-        //     },
-        //     object: {
-        //         openBracket: this.makeYellow('{'),
-        //         closeBracket: this.makeYellow('}'),
-        //         ctor: {
-        //             open: this.blue,
-        //             close: this.ansiStyles.color.close,
-        //         },
-        //         stringTag: {open: this.ansiStyles.magenta.open + '@', close: this.ansiStyles.magenta.close},
-        //         secondaryStringTag: {open: this.ansiStyles.grey.open + '@', close: this.ansiStyles.grey.close}
-        //     },
-        //     property: {
-        //         after: this.forceColor.grey(','),
-        //         keyBracket: {open: this.forceColor.grey('['), close: this.forceColor.grey(']')},
-        //         valueFallback: this.forceColor.grey('…')
-        //     },
-        //     react: {
-        //         functionType: this.forceColor.grey('\u235F'),
-        //         openTag: {
-        //             start: this.forceColor.grey('<'),
-        //             end: this.forceColor.grey('>'),
-        //             selfClose: this.forceColor.grey('/'),
-        //             selfCloseVoid: ' ' + this.forceColor.grey('/')
-        //         },
-        //         closeTag: {
-        //             open: this.forceColor.grey('</'),
-        //             close: this.forceColor.grey('>')
-        //         },
-        //         tagName: this.ansiStyles.magenta,
-        //         attribute: {
-        //             separator: '=',
-        //             value: {
-        //                 openBracket: this.forceColor.grey('{'),
-        //                 closeBracket: this.forceColor.grey('}'),
-        //                 string: {
-        //                     line: {open: this.forceColor.blue('"'), close: this.forceColor.blue('"'), escapeQuote: '"'}
-        //                 }
-        //             }
-        //         },
-        //         child: {
-        //             openBracket: this.forceColor.grey('{'),
-        //             closeBracket: this.forceColor.grey('}')
-        //         }
-        //     },
-        //     regexp: {
-        //         source: {open: this.ansiStyles.blue.open + '/', close: '/' + this.ansiStyles.blue.close},
-        //         flags: this.ansiStyles.yellow
-        //     },
-        //     stats: {separator: this.forceColor.grey('---')},
-        //     string: {
-        //         open: this.ansiStyles.bold.open + this.green,
-        //         close: this.ansiStyles.color.close + this.ansiStyles.bold.close,
-        //         line: {open: this.yellow + '\'' + this.ansiStyles.color.close, close: this.yellow + '\'' + this.ansiStyles.color.close},
-        //         multiline: {start: this.forceColor.green('`'), end: this.forceColor.green('`')},
-        //         controlPicture: this.ansiStyles.grey,
-        //         diff: {
-        //             insert: {
-        //                 open: this.ansiStyles.bgGreen.open + this.ansiStyles.black.open,
-        //                 close: this.ansiStyles.black.close + this.ansiStyles.bgGreen.close
-        //             },
-        //             delete: {
-        //                 open: this.ansiStyles.bgRed.open + this.ansiStyles.black.open,
-        //                 close: this.ansiStyles.black.close + this.ansiStyles.bgRed.close
-        //             },
-        //             equal: this.ansiStyles.blue,
-        //             insertLine: {
-        //                 open: this.ansiStyles.green.open,
-        //                 close: this.ansiStyles.green.close
-        //             },
-        //             deleteLine: {
-        //                 open: this.ansiStyles.red.open,
-        //                 close: this.ansiStyles.red.close
-        //             }
-        //         }
-        //     },
-        //     symbol: this.ansiStyles.yellow,
-        //     typedArray: {
-        //         bytes: this.ansiStyles.yellow
-        //     },
-        //     undefined: this.ansiStyles.yellow
-        // };
-
-        // this.theme.html = {
-        //     keyword: this.chalk.blue,
-        //     built_in: this.chalk.cyan,
-        //     type: this.chalk.cyan.dim,
-        //     literal: this.chalk.blue,
-        //     number: this.chalk.green,
-        //     regexp: this.chalk.red,
-        //     string: this.chalk.greenBright,
-        //     subst: this.plainFormat,
-        //     symbol: this.plainFormat,
-        //     class: this.chalk.blue,
-        //     function: this.chalk.yellow,
-        //     title: this.plainFormat,
-        //     params: this.plainFormat,
-        //     comment: this.chalk.green,
-        //     doctag: this.chalk.green,
-        //     meta: this.chalk.grey,
-        //     'meta-keyword': this.plainFormat,
-        //     'meta-string': this.plainFormat,
-        //     section: this.plainFormat,
-        //     tag: this.chalk.green,
-        //     name: this.chalk.green,
-        //     'builtin-name': this.plainFormat,
-        //     attr: this.chalk.yellow,
-        //     attribute: this.plainFormat,
-        //     variable: this.plainFormat,
-        //     bullet: this.plainFormat,
-        //     code: this.plainFormat,
-        //     emphasis: this.chalk.italic,
-        //     strong: this.chalk.bold,
-        //     formula: this.plainFormat,
-        //     link: this.chalk.underline,
-        //     quote: this.plainFormat,
-        //     'selector-tag': this.plainFormat,
-        //     'selector-id': this.plainFormat,
-        //     'selector-class': this.plainFormat,
-        //     'selector-attr': this.plainFormat,
-        //     'selector-pseudo': this.plainFormat,
-        //     'template-tag': this.plainFormat,
-        //     'template-variable': this.plainFormat,
-        //     addition: this.chalk.green,
-        //     deletion: this.chalk.red,
-        // };
-
-        this.applyTheme(this.defaultTheme);
     }
 
     diff(actual, expected)
