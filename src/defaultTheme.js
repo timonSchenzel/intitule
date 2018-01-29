@@ -1,11 +1,15 @@
 module.exports = {
 	colors: {
 		yellow: [252, 127, 0],
+        darkYellow: 'c6ad49',
         blue: [36, 176, 213],
         green: [141, 213, 102],
+        brightGreen: '9cc55f',
+        brighterGreen: 'b4bc58',
         red: 'a24344',
+        bgRgbTest: [141, 213, 102],
+        bgHexTest: 'a24344',
 	},
-
 	style: {
         boolean: 'yellow.bold',
 
@@ -216,10 +220,10 @@ module.exports = {
         undefined: 'yellow',
 
         html: {
-            string: 'greenBright',
-            tag: 'green',
-            name: 'green',
-            attr: 'yellow',
+            string: 'brightGreen',
+            tag: 'brighterGreen',
+            name: 'brighterGreen',
+            attr: 'darkYellow',
         }
 	},
 };

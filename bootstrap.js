@@ -1,5 +1,4 @@
 global.intitule = new (require('./src/Intitule'));
-global.ansiStyles = require('ansi-styles');
 
 intitule.makeGlobal();
 

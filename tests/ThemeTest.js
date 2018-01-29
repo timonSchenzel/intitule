@@ -1,12 +1,18 @@
 module.exports = class ThemeTest extends TestCase
 {
+    setUp()
+    {
+        this.ansiStyles = require('ansi-styles');
+        this.chalk = require('chalk');
+    }
+
 	/** @test */
 	it_is_possible_to_specify_a_color_in_rgb_format()
 	{
 		intitule.registerColor('red', [255, 0, 0]);
 
 		this.assertEquals(
-			ansiStyles.color.ansi256.rgb(255, 0, 0),
+			this.ansiStyles.color.ansi256.rgb(255, 0, 0),
 			intitule.colors.red
 		);
 	}
@@ -17,14 +23,14 @@ module.exports = class ThemeTest extends TestCase
 		intitule.registerColor('red', 'a24344');
 
 		this.assertEquals(
-			ansiStyles.color.ansi16m.hex('a24344'),
+			this.ansiStyles.color.ansi16m.hex('a24344'),
 			intitule.colors.red
 		);
 
 		intitule.registerColor('red2', '#a24344');
 
 		this.assertEquals(
-			ansiStyles.color.ansi16m.hex('a24344'),
+			this.ansiStyles.color.ansi16m.hex('a24344'),
 			intitule.colors.red2
 		);
 	}
@@ -37,7 +43,7 @@ module.exports = class ThemeTest extends TestCase
 
 		this.assertEquals({
 			open: intitule.colors.red,
-			close: ansiStyles.color.close,
+			close: this.ansiStyles.color.close,
 		}, intitule.theme.boolean);
 	}
 
@@ -51,7 +57,7 @@ module.exports = class ThemeTest extends TestCase
         });
 
 		this.assertEquals(
-			intitule.colors.red + '[Circular]' + ansiStyles.color.close,
+			intitule.colors.red + '[Circular]' + this.ansiStyles.color.close,
 			intitule.theme.circular
 		);
 	}
@@ -68,11 +74,11 @@ module.exports = class ThemeTest extends TestCase
             value: 'blue',
         });
 
-		this.assertEquals(intitule.colors.red + 'invalid' + ansiStyles.color.close, intitule.theme.date.invalid);
+		this.assertEquals(intitule.colors.red + 'invalid' + this.ansiStyles.color.close, intitule.theme.date.invalid);
 
         this.assertEquals({
         	open: intitule.colors.blue,
-        	close: ansiStyles.color.close
+        	close: this.ansiStyles.color.close
         }, intitule.theme.date.value);
 	}
 
@@ -111,13 +117,13 @@ module.exports = class ThemeTest extends TestCase
             }
         });
 
-        this.assertEquals(ansiStyles.bold.open + intitule.colors.green, intitule.theme.string.open);
+        this.assertEquals(this.ansiStyles.bold.open + intitule.colors.green, intitule.theme.string.open);
 
-        this.assertEquals(ansiStyles.color.close + ansiStyles.bold.close, intitule.theme.string.close);
+        this.assertEquals(this.ansiStyles.color.close + this.ansiStyles.bold.close, intitule.theme.string.close);
 
         this.assertEquals({
-            open: intitule.colors.yellow + '\'' + ansiStyles.color.close,
-            close: intitule.colors.yellow + '\'' + ansiStyles.color.close
+            open: intitule.colors.yellow + '\'' + this.ansiStyles.color.close,
+            close: intitule.colors.yellow + '\'' + this.ansiStyles.color.close
         }, intitule.theme.string.line);
 
         this.assertEquals({
@@ -125,31 +131,31 @@ module.exports = class ThemeTest extends TestCase
             end: intitule.make('green', '`')
         }, intitule.theme.string.multiline);
 
-        this.assertEquals(ansiStyles.grey, intitule.theme.string.controlPicture);
+        this.assertEquals(this.ansiStyles.grey, intitule.theme.string.controlPicture);
 
         this.assertEquals({
-            open: ansiStyles.bgGreen.open + ansiStyles.black.open,
-            close: ansiStyles.black.close + ansiStyles.bgGreen.close
+            open: this.ansiStyles.bgGreen.open + this.ansiStyles.black.open,
+            close: this.ansiStyles.black.close + this.ansiStyles.bgGreen.close
         }, intitule.theme.string.diff.insert);
 
         this.assertEquals({
-            open: ansiStyles.bgRed.open + ansiStyles.black.open,
-            close: ansiStyles.black.close + ansiStyles.bgRed.close
+            open: this.ansiStyles.bgRed.open + this.ansiStyles.black.open,
+            close: this.ansiStyles.black.close + this.ansiStyles.bgRed.close
         }, intitule.theme.string.diff.delete);
 
         this.assertEquals({
             open: intitule.colors.blue,
-            close: ansiStyles.color.close,
+            close: this.ansiStyles.color.close,
         }, intitule.theme.string.diff.equal);
 
         this.assertEquals({
             open: intitule.colors.green,
-            close: ansiStyles.color.close
+            close: this.ansiStyles.color.close
         }, intitule.theme.string.diff.insertLine);
 
         this.assertEquals({
             open: intitule.colors.red,
-            close: ansiStyles.color.close
+            close: this.ansiStyles.color.close
         }, intitule.theme.string.diff.deleteLine);
     }
 
@@ -164,11 +170,11 @@ module.exports = class ThemeTest extends TestCase
         });
 
         this.assertEquals(intitule.colors.violet, intitule.theme.html.name._styles[0].open);
-        this.assertEquals(ansiStyles.color.close, intitule.theme.html.name._styles[0].close);
+        this.assertEquals(this.ansiStyles.color.close, intitule.theme.html.name._styles[0].close);
     }
 
     /** @test */
-    with_html_style_it_will_fallback_to_chalk_colors_if_available()
+    html_style_will_fallback_to_chalk_colors_if_available()
     {
         let chalk = require('chalk');
 
@@ -177,6 +183,51 @@ module.exports = class ThemeTest extends TestCase
         });
 
         this.assertEquals(chalk.cyan._styles, intitule.theme.html.name._styles);
+    }
+
+    /** @test */
+    it_will_apply_the_default_theme_by_default()
+    {
+        let localIntitule = new (require('../src/Intitule'));
+
+        // Colors
+        this.assertEquals({
+            yellow: this.ansiStyles.color.ansi256.rgb(252, 127, 0),
+            darkYellow: this.ansiStyles.color.ansi16m.hex('c6ad49'),
+            blue: this.ansiStyles.color.ansi256.rgb(36, 176, 213),
+            green: this.ansiStyles.color.ansi256.rgb(141, 213, 102),
+            brightGreen: this.ansiStyles.color.ansi16m.hex('9cc55f'),
+            brighterGreen: this.ansiStyles.color.ansi16m.hex('b4bc58'),
+            red: this.ansiStyles.color.ansi16m.hex('a24344'),
+            bgRgbTest: this.ansiStyles.bgColor.ansi256.rgb(141, 213, 102),
+            bgHexTest: this.ansiStyles.bgColor.ansi16m.hex('a24344'),
+        }, localIntitule.colors);
+
+        let rawChalkColors = {};
+        for (let chalkColor in localIntitule.chalkColors) {
+            rawChalkColors[chalkColor] = localIntitule.chalkColors[chalkColor]._styles;
+        }
+
+        // ChalkColors
+        this.assertEquals({
+            yellow: this.chalk.rgb(252, 127, 0)._styles,
+            darkYellow: this.chalk.hex('c6ad49')._styles,
+            blue: this.chalk.rgb(36, 176, 213)._styles,
+            green: this.chalk.rgb(141, 213, 102)._styles,
+            brightGreen: this.chalk.hex('9cc55f')._styles,
+            brighterGreen: this.chalk.hex('b4bc58')._styles,
+            red: this.chalk.hex('a24344')._styles,
+        }, rawChalkColors);
+
+        // Theme
+        this.assertEquals({
+            html: {
+                string: localIntitule.chalkColors.brightGreen,
+                tag: localIntitule.chalkColors.brighterGreen,
+                name: localIntitule.chalkColors.brighterGreen,
+                attr: localIntitule.chalkColors.darkYellow,
+            }
+        }, localIntitule.theme);
     }
 }
 

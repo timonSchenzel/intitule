@@ -19,6 +19,7 @@ module.exports = class Intitule
         ];
 
         this.colors = {};
+        this.chalkColors = {};
 
         this.ansiStyles = require('ansi-styles');
         this.concordance = require('concordance');
@@ -27,10 +28,6 @@ module.exports = class Intitule
         this.isHtml = require('is-html');
         this.chalk = require('chalk');
         this.forceColor = new this.chalk.constructor({enabled: true});
-
-        this.yellow = this.ansiStyles.color.ansi256.rgb(252, 127, 0);
-        this.blue = this.ansiStyles.color.ansi256.rgb(36, 176, 213);
-        this.green = this.ansiStyles.color.ansi256.rgb(141, 213, 102);
 
         this.theme = {};
         this.theme.html = {};
@@ -61,6 +58,8 @@ module.exports = class Intitule
 
     registerColor(colorName, colorValue)
     {
+        let blankChalk = require('chalk');
+
         if (typeof colorValue == 'string') {
             if (! colorValue.startsWith('#')) {
                 colorValue = '#' + colorValue;
@@ -70,12 +69,14 @@ module.exports = class Intitule
                 this['colors'][colorName] = this.ansiStyles.bgColor.ansi16m.hex(colorValue);
             } else {
                 this['colors'][colorName] = this.ansiStyles.color.ansi16m.hex(colorValue);
+                this['chalkColors'][colorName] = blankChalk.hex(colorValue);
             }
         } else if (typeof colorValue == 'object') {
             if (colorName.startsWith('bg')) {
                 this['colors'][colorName] = this.ansiStyles.bgColor.ansi256.rgb(colorValue[0], colorValue[1], colorValue[2]);
             } else {
                 this['colors'][colorName] = this.ansiStyles.color.ansi256.rgb(colorValue[0], colorValue[1], colorValue[2]);
+                this['chalkColors'][colorName] = blankChalk.rgb(colorValue[0], colorValue[1], colorValue[2]);
             }
         }
     }
@@ -86,7 +87,7 @@ module.exports = class Intitule
             for (let property in properties) {
                 if (property == 'html') {
                     for (let htmlProperty in properties.html) {
-                        this.theme.html[htmlProperty] = this.applyPropertyStyle(properties.html[htmlProperty], true, htmlProperty);
+                        this.theme.html[htmlProperty] = this.applyHtmlPropertyStyle(properties.html[htmlProperty]);
                     }
                 } else {
                     this.styleProperty(property, properties[property]);
@@ -95,7 +96,7 @@ module.exports = class Intitule
         } else {
             if (properties == 'html') {
                 for (let htmlProperty in styling) {
-                    this.theme.html[htmlProperty] = this.applyPropertyStyle(styling[htmlProperty], true);
+                    this.theme.html[htmlProperty] = this.applyHtmlPropertyStyle(styling[htmlProperty]);
                 }
             } else {
                 this.styleProperty(properties, styling);
@@ -103,7 +104,7 @@ module.exports = class Intitule
         }
     }
 
-    styleProperty(property, styling, isHtml)
+    styleProperty(property, styling)
     {
         if (! this.theme[property]) {
             this.theme[property] = {};
@@ -115,7 +116,7 @@ module.exports = class Intitule
 
         if (styling.constructor == Array) {
             this.theme[property] = {};
-            this.theme[property] = this.applyPropertyStyle(styling, isHtml);
+            this.theme[property] = this.applyPropertyStyle(styling);
         }
 
         if (styling.constructor == Object) {
@@ -137,9 +138,9 @@ module.exports = class Intitule
                 if (styling[subItem].constructor == Array) {
                     this.theme[property][subItem] = {};
                     if (subItem == 'color') {
-                        this.theme[property] = this.applyPropertyStyle(styling[subItem], isHtml);
+                        this.theme[property] = this.applyPropertyStyle(styling[subItem]);
                     } else {
-                        this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem], isHtml);
+                        this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem]);
                     }
                 }
 
@@ -159,13 +160,13 @@ module.exports = class Intitule
                             if (typeof styling[subItem][subSubItem] == 'string') {
                                 styling[subItem][subSubItem] = styling[subItem][subSubItem].split('.');
 
-                                this.theme[property][subItem][subSubItem] = this.applyPropertyStyle(styling[subItem][subSubItem], isHtml);
+                                this.theme[property][subItem][subSubItem] = this.applyPropertyStyle(styling[subItem][subSubItem]);
                             }
                         }
                     }
                 } else {
                     this.theme[property][subItem] = {};
-                    this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem], isHtml);
+                    this.theme[property][subItem] = this.applyPropertyStyle(styling[subItem]);
                 }
             }
         }
@@ -204,94 +205,57 @@ module.exports = class Intitule
         return formatted;
     }
 
-    applyPropertyStyle(styling, isHtml = false, propertyName = null)
+    applyHtmlPropertyStyle(style)
     {
-        let chalk = require('chalk');
+        if (this['chalkColors'][style]) {
+            return this.chalkColors[style];
+        } else {
+            let blankChalk = require('chalk');
+            return blankChalk[style];
+        }
+    }
+
+    applyPropertyStyle(styling)
+    {
         let property = {};
 
         if (typeof styling == 'string') {
             styling = styling.split('.');
         }
 
-        if (isHtml) {
-            property = chalk.reset;
-
-            if (this['colors'][styling[0]]) {
-                property._styles[0].open = this['colors'][styling[0]];
-                property._styles[0].close = this.ansiStyles.color.close;
-
-                return property;
-            } else {
-                let blankChalk = require('chalk');
-                return blankChalk[styling[0]];
+        styling.forEach(style => {
+            if (! property.open) {
+                property.open = '';
             }
 
-            // property = chalk.reset;
-            // property._styles[0].open = '';
-            // property._styles[0].close = '';
-        }
-
-        styling.forEach(style => {
-            if (! isHtml) {
-                if (! property.open) {
-                    property.open = '';
-                }
-
-                if (this['colors'][style]) {
-                    property.open += this['colors'][style];
-                } else if (this.colorModifiers.includes(style)) {
-                    property.open += this.ansiStyles[style].open;
-                } else if (this.ansiStyles.color[style]) {
-                    property.open += this.ansiStyles.color[style].open;
-                } else if (this.ansiStyles[style]) {
-                    property.open += this.ansiStyles[style].open;
-                }
-            } else {
-                if (this.colorModifiers.includes(style)) {
-                    property._styles[0].open += this.ansiStyles[style].open;
-                } else if (this['colors'][style]) {
-                    property._styles[0].open += this['colors'][style];
-                } else if (this.ansiStyles.color[style]) {
-                    property._styles[0].open += this.ansiStyles.color[style].open;
-                } else if (this.ansiStyles[style]) {
-                    property._styles[0].open += this.ansiStyles[style].open;
-                }
+            if (this['colors'][style]) {
+                property.open += this['colors'][style];
+            } else if (this.colorModifiers.includes(style)) {
+                property.open += this.ansiStyles[style].open;
+            } else if (this.ansiStyles.color[style]) {
+                property.open += this.ansiStyles.color[style].open;
+            } else if (this.ansiStyles[style]) {
+                property.open += this.ansiStyles[style].open;
             }
         });
 
         styling.reverse().forEach(style => {
-            if (! isHtml) {
-                if (! property.close) {
-                    property.close = '';
-                }
+            if (! property.close) {
+                property.close = '';
+            }
 
-                if (this.colorModifiers.includes(style)) {
-                    property.close += this.ansiStyles[style].close;
-                } else if (this['colors'][style]) {
-                    if (style.startsWith('bg')) {
-                        property.close += this.ansiStyles.bgColor.close;
-                    } else {
-                        property.close += this.ansiStyles.color.close;
-                    }
-                } else if (this.ansiStyles.color[style]) {
-                    property.close += this.ansiStyles.color[style].close;
-                } else if (this.ansiStyles[style]) {
-                    property.close += this.ansiStyles[style].close;
+            if (this.colorModifiers.includes(style)) {
+                property.close += this.ansiStyles[style].close;
+            } else if (this['colors'][style]) {
+                if (style.startsWith('bg')) {
+                    property.close += this.ansiStyles.bgColor.close;
+                } else {
+                    property.close += this.ansiStyles.color.close;
                 }
-            } else {
-                if (this.colorModifiers.includes(style)) {
-                    property._styles[0].close += this.ansiStyles[style].close;
-                } else if (this['colors'][style]) {
-                    if (style.startsWith('bg')) {
-                        property._styles[0].close += this.ansiStyles.bgColor.close;
-                    } else {
-                        property._styles[0].close += this.ansiStyles.color.close;
-                    }
-                } else if (this.ansiStyles.color[style]) {
-                    property._styles[0].close += this.ansiStyles.color[style].close;
-                } else if (this.ansiStyles[style]) {
-                    property._styles[0].close += this.ansiStyles[style].close;
-                }
+            } else if (this.ansiStyles.color[style]) {
+                property.close += this.ansiStyles.color[style].close;
+            } else if (this.ansiStyles[style]) {
+                property.close += this.ansiStyles[style].close;
             }
         });
 
@@ -301,6 +265,7 @@ module.exports = class Intitule
     applyTheme(theme)
     {
         this.registerColors(theme.colors);
+
         this.style(theme.style);
     }
 
