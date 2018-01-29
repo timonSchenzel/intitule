@@ -61,6 +61,7 @@ module.exports = {
         },
 
         list: {
+            ctor: 'blue',
             openBracket: {
                 color: 'yellow',
                 text: '[',
@@ -88,6 +89,7 @@ module.exports = {
         number: 'bold.blue',
 
         object: {
+            ctor: 'blue',
             openBracket: {
                 color: 'yellow',
                 text: '{',
@@ -96,7 +98,6 @@ module.exports = {
                 color: 'yellow',
                 text: '}',
             },
-            ctor: 'blue',
             stringTag: {
                 color: 'magenta',
                 text: '@',

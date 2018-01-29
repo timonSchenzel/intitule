@@ -3,6 +3,7 @@ module.exports = class Intitule
     constructor()
     {
         this.defaultTheme = require('./defaultTheme');
+        this.merge = require('deepmerge');
 
         this.addLeftMargin = true;
         this.leftMarginSpaces = 1;
@@ -264,6 +265,20 @@ module.exports = class Intitule
 
     applyTheme(theme)
     {
+        if (typeof theme == 'string') {
+            theme = require(theme);
+        }
+
+        if (theme.extend) {
+            let extend = theme.extend;
+            delete theme.extend;
+            if (extend == 'default') {
+                theme = this.merge(this.defaultTheme, theme, { arrayMerge: (destination, source) => source });
+            } else {
+                theme = this.merge(require(extend), theme, { arrayMerge: (destination, source) => source });
+            }
+        }
+
         this.registerColors(theme.colors);
 
         this.style(theme.style);
@@ -308,11 +323,11 @@ module.exports = class Intitule
 
         if (typeof value == 'object' && value !== null) {
             if (value.constructor == Array) {
-                formatted = this.blue + `array:${value.length} ` + this.ansiStyles.color.close + formatted;
+                formatted = this.theme.list.ctor.open + `array:${value.length} ` + this.ansiStyles.color.close + formatted;
             }
 
             if (value.constructor == Object) {
-                formatted = this.blue + `object:${Object.keys(value).length} ` + this.ansiStyles.color.close + formatted;
+                formatted = this.theme.object.ctor.open + `object:${Object.keys(value).length} ` + this.ansiStyles.color.close + formatted;
             }
         }
 
