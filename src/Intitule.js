@@ -2,8 +2,17 @@ module.exports = class Intitule
 {
     constructor()
     {
-        this.defaultTheme = require('./defaultTheme');
         this.merge = require('deepmerge');
+        this.fs = require('fs');
+        this.path = require('path');
+
+        this.configFile = 'intitule.config.js';
+
+        this.root = this.path.normalize(
+            process.cwd() + '/'
+        );
+
+        this.defaultTheme = this.loadDefaultTheme();
 
         this.addLeftMargin = true;
         this.leftMarginSpaces = 1;
@@ -34,6 +43,24 @@ module.exports = class Intitule
         this.theme.html = {};
 
         this.applyTheme(this.defaultTheme);
+    }
+
+    loadDefaultTheme()
+    {
+        let defaultTheme = require('./defaultTheme');
+
+        if (this.fs.existsSync(this.root + this.configFile)) {
+            let config = require(this.root + this.configFile);
+
+            if (config.extend == 'default') {
+                delete config.extend;
+                defaultTheme = this.merge(defaultTheme, config, { arrayMerge: (destination, source) => source });
+            } else {
+                defaultTheme = config;
+            }
+        }
+
+        return defaultTheme;
     }
 
     make(color, value)
@@ -113,6 +140,10 @@ module.exports = class Intitule
 
         if (typeof styling == 'string') {
             styling = styling.split('.');
+        }
+
+        if (styling === null) {
+            return;
         }
 
         if (styling.constructor == Array) {
@@ -323,15 +354,37 @@ module.exports = class Intitule
 
         if (typeof value == 'object' && value !== null) {
             if (value.constructor == Array) {
-                formatted = this.theme.list.ctor.open + `array:${value.length} ` + this.ansiStyles.color.close + formatted;
+                formatted = this.prefixArray(value) + formatted;
             }
 
             if (value.constructor == Object) {
-                formatted = this.theme.object.ctor.open + `object:${Object.keys(value).length} ` + this.ansiStyles.color.close + formatted;
+                formatted = this.prefixObject(value) + formatted;
             }
         }
 
         this.write(formatted);
+    }
+
+    prefixArray(array)
+    {
+        let prefix = `array:${array.length} `;
+
+        if (this.theme.list && this.theme.list.ctor && this.theme.list.ctor.open) {
+            return this.theme.list.ctor.open + prefix + this.ansiStyles.color.close;
+        }
+
+        return prefix;
+    }
+
+    prefixObject(object)
+    {
+        let prefix = `object:${Object.keys(object).length} `;
+
+        if (this.theme.object && this.theme.object.ctor && this.theme.object.ctor.open) {
+            return this.theme.object.ctor.open + prefix + this.ansiStyles.color.close;
+        }
+
+        return prefix;
     }
 
     dd(value)
