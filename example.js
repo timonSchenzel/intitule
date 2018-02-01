@@ -1,21 +1,35 @@
 require('./bootstrap');
 
-// console.log(intitule.theme.html.name);
+let variable;
+dumpValue(variable);
 
-// process.exit();
+dumpValue('');
 
-dump();
-dump('');
-dump(true);
-dump(false);
-dump(null);
-dump(1234567890);
-dump('foo');
-dump([1,2,3]);
-dump({1:1,2:2,3:3});
-dump({foo: 'bar', bar: 'baz', 'number': 22});
-dump(Foo);
-dump(fooInstance);
+dumpValue(true);
+
+dumpValue(false);
+
+dumpValue(null);
+
+dumpValue(1234567890);
+
+dumpValue('foo');
+
+dumpValue([1,2,3]);
+
+dumpValue({1:1,2:2,3:3});
+
+dumpValue({foo: 'bar', bar: 'baz', 'number': 22});
+
+dumpValue(Foo);
+
+dumpValue(fooInstance);
+
+console.log('Dump: unformatted html');
+dump(`<ul><li>Foo</li><li>Bar</li><li>Baz</li></ul>`);
+console.log();
+
+console.log('Dump: formatted html');
 dump(`
     <html>
     <body>
@@ -29,7 +43,26 @@ dump(`
     </body>
     </html>
 `);
+console.log();
+
+console.log('Dump: diff');
 diff('foo', 'bar');
+console.log();
+
+console.log('Dump: diff');
 diff('foo', 'foobar');
+console.log();
+
+console.log('Dump: diff');
 diff('foobar', 'bar');
+console.log();
+
+console.log();
 dd('done.');
+
+function dumpValue(value)
+{
+	console.log('Dump: ' + typeof value);
+	dump(value);
+	console.log();
+}

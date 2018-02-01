@@ -217,15 +217,5 @@ module.exports = class ThemeTest extends TestCase
             brighterGreen: this.chalk.hex('b4bc58')._styles,
             red: this.chalk.hex('a24344')._styles,
         }, rawChalkColors);
-
-        // Theme
-        // this.assertEquals({
-        //     html: {
-        //         string: localIntitule.chalkColors.brightGreen,
-        //         tag: localIntitule.chalkColors.brighterGreen,
-        //         name: localIntitule.chalkColors.brighterGreen,
-        //         attr: localIntitule.chalkColors.darkYellow,
-        //     }
-        // }, localIntitule.theme);
     }
 }
