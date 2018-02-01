@@ -86,8 +86,6 @@ module.exports = class Intitule
 
     registerColor(colorName, colorValue)
     {
-        let blankChalk = require('chalk');
-
         if (typeof colorValue == 'string') {
             if (! colorValue.startsWith('#')) {
                 colorValue = '#' + colorValue;
@@ -97,14 +95,14 @@ module.exports = class Intitule
                 this['colors'][colorName] = this.ansiStyles.bgColor.ansi16m.hex(colorValue);
             } else {
                 this['colors'][colorName] = this.ansiStyles.color.ansi16m.hex(colorValue);
-                this['chalkColors'][colorName] = blankChalk.hex(colorValue);
+                this['chalkColors'][colorName] = this.chalk.hex(colorValue);
             }
         } else if (typeof colorValue == 'object') {
             if (colorName.startsWith('bg')) {
                 this['colors'][colorName] = this.ansiStyles.bgColor.ansi256.rgb(colorValue[0], colorValue[1], colorValue[2]);
             } else {
                 this['colors'][colorName] = this.ansiStyles.color.ansi256.rgb(colorValue[0], colorValue[1], colorValue[2]);
-                this['chalkColors'][colorName] = blankChalk.rgb(colorValue[0], colorValue[1], colorValue[2]);
+                this['chalkColors'][colorName] = this.chalk.rgb(colorValue[0], colorValue[1], colorValue[2]);
             }
         }
     }
@@ -146,6 +144,7 @@ module.exports = class Intitule
             return;
         }
 
+        // Main item
         if (styling.constructor == Array) {
             this.theme[property] = {};
             this.theme[property] = this.applyPropertyStyle(styling);
@@ -158,6 +157,7 @@ module.exports = class Intitule
                 delete styling.text;
             }
 
+            // Sub item
             for (let subItem in styling) {
                 if (! this.theme[property][subItem]) {
                     this.theme[property][subItem] = {};
@@ -183,6 +183,7 @@ module.exports = class Intitule
                         delete styling[subItem].text;
                     }
 
+                    // Sub-sub item
                     for (let subSubItem in styling[subItem]) {
                         if (styling[subItem][subSubItem].color && styling[subItem][subSubItem].text) {
                             this.theme[property][subItem][subSubItem] = this.applyPropertyStyleWithValue(styling[subItem][subSubItem].color, styling[subItem][subSubItem].text);
@@ -204,39 +205,6 @@ module.exports = class Intitule
         }
     }
 
-    applyPropertyStyleWithValue(styling, value)
-    {
-        let formatted = '';
-
-        if (typeof styling == 'string') {
-            styling = styling.split('.');
-        }
-
-        styling.forEach(style => {
-            if (this.colorModifiers.includes(style)) {
-                formatted += this.ansiStyles[style].open;
-            } else if (this['colors'][style]) {
-                formatted += this['colors'][style];
-            } else if (this.ansiStyles.color[style]) {
-                formatted += this.ansiStyles.color[style].open;
-            }
-        });
-
-        formatted += value;
-
-        styling.reverse().forEach(style => {
-            if (this.colorModifiers.includes(style)) {
-                formatted += this.ansiStyles[style].close;
-            } else if (this['colors'][style]) {
-                formatted += this.ansiStyles.color.close;
-            } else if (this.ansiStyles.color[style]) {
-                formatted += this.ansiStyles.color[style].close;
-            }
-        });
-
-        return formatted;
-    }
-
     applyHtmlPropertyStyle(style)
     {
         if (this['chalkColors'][style]) {
@@ -247,6 +215,13 @@ module.exports = class Intitule
         }
     }
 
+    applyPropertyStyleWithValue(styling, value)
+    {
+        let style = this.applyPropertyStyle(styling);
+
+        return style.open + value + style.close;
+    }
+
     applyPropertyStyle(styling)
     {
         let property = {};
@@ -255,6 +230,7 @@ module.exports = class Intitule
             styling = styling.split('.');
         }
 
+        // Open style
         styling.forEach(style => {
             if (! property.open) {
                 property.open = '';
@@ -271,6 +247,7 @@ module.exports = class Intitule
             }
         });
 
+        // Close style
         styling.reverse().forEach(style => {
             if (! property.close) {
                 property.close = '';
