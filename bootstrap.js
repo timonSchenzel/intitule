@@ -1,4 +1,4 @@
-global.intitule = new (require('./src/Intitule'));
+global.intitule = require('./index');
 
 intitule.makeGlobal();
 
