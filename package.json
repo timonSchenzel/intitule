@@ -3,7 +3,6 @@
     "version": "1.0.0",
     "author": "Timon Schenzel",
     "license": "MIT",
-    "private": true,
     "main": "index.js",
     "scripts": {
         "test": "counsel"
