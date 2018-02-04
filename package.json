@@ -1,6 +1,6 @@
 {
     "name": "intitule",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Dump javascript values and html like it makes sense.",
     "repository": "https://github.com/timonSchenzel/intitule.git",
     "author": "Timon Schenzel",
@@ -14,7 +14,6 @@
         "chalk": "^2.3.0",
         "cli-highlight": "^1.2.3",
         "concordance": "^3.0.0",
-        "counsel": "file:../counsel",
         "deepmerge": "^2.0.1",
         "intitule-themes": "file:../intitule-themes",
         "is-html": "^1.1.0",
