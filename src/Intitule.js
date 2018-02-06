@@ -280,8 +280,6 @@ module.exports = class Intitule
     ddDiff(actual, expected)
     {
         this.diff(actual, expected);
-
-        process.exit(0);
     }
 
     dump(value)
@@ -299,6 +297,21 @@ module.exports = class Intitule
         }
 
         this.write(formatted);
+    }
+
+    dd(value)
+    {
+        this.dump(value);
+    }
+
+    write(value)
+    {
+        if (this.addLeftMargin && this.leftMarginSpaces > 0) {
+            let margin = this.createMargin();
+            value = margin + value.split('\n').join('\n' + margin);
+        }
+
+        console.log(value);
     }
 
     prefixArray(array)
@@ -321,23 +334,6 @@ module.exports = class Intitule
         }
 
         return prefix;
-    }
-
-    dd(value)
-    {
-        this.dump(value)
-
-        process.exit(0);
-    }
-
-    write(value)
-    {
-        if (this.addLeftMargin && this.leftMarginSpaces > 0) {
-            let margin = this.createMargin();
-            value = margin + value.split('\n').join('\n' + margin);
-        }
-
-        console.log(value)
     }
 
     createMargin()

@@ -3,6 +3,5 @@ if (process.browser) {
     module.exports = new (require('./src/IntituleWebbrowser'));
 } else {
     // Nodejs
-    let nodeClass = './src/IntituleNodejs';
-    module.exports = new (require("'" + nodeClass + "'"));
+    module.exports = new (require('./src/IntituleNodejs'));
 }

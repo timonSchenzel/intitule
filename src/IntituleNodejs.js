@@ -47,7 +47,14 @@ module.exports = class IntituleNodejs extends IntituleBase
             expected = this.highlight(expected, {language: 'html', ignoreIllegals: true, theme: this.theme.html});
         }
 
-        this.write(this.concordance.diff(actual, expected, {plugins: [], theme: this.theme}));
+        super.diff(actual, expected);
+    }
+
+    ddDiff(actual, expected)
+    {
+        this.diff(actual, expected);
+
+        process.exit(0);
     }
 
     dump(value)
@@ -61,18 +68,13 @@ module.exports = class IntituleNodejs extends IntituleBase
             return;
         }
 
-        let formatted = this.concordance.format(value, {plugins: [], theme: this.theme});
+        super.dump(value);
+    }
 
-        if (typeof value == 'object' && value !== null) {
-            if (value.constructor == Array) {
-                formatted = this.prefixArray(value) + formatted;
-            }
+    dd(value)
+    {
+        this.dump(value)
 
-            if (value.constructor == Object) {
-                formatted = this.prefixObject(value) + formatted;
-            }
-        }
-
-        this.write(formatted);
+        process.exit(0);
     }
 }
